@@ -78,11 +78,14 @@ def get_sirs(con):
 
 # angus
 def get_angus(con):
-    fp = open(os.path.dirname(os.path.realpath(__file__)) + '/query/angus.sql', 'r')
+    fp = open(os.path.dirname(os.path.realpath(__file__)) + '/../mimic-code/sepsis/angus.sql', 'r')
     query = 'SET search_path to ' + schema_name + ';' + fp.read()
     fp.close()
 
-    angus = pd.read_sql_query(query,con)
+    cur = con.cursor()
+    cur.execute(query)
+    cur.close()
+    angus = pd.read_sql_query("""select * from angus_sepsis""",con)
     return angus
 
 def get_suspected_infection_time(con):
