@@ -78,7 +78,7 @@ def get_sirs(con):
 
 # angus
 def get_angus(con):
-    fp = open('/home/alistairewj/mimic-code/sepsis/angus.sql', 'r')
+    fp = open(os.path.dirname(os.path.realpath(__file__)) + '/query/angus.sql', 'r')
     query = 'SET search_path to ' + schema_name + ';' + fp.read()
     fp.close()
 
@@ -296,7 +296,7 @@ def get_suspected_infection_time(con):
     select hadm_id
       , chartdate, charttime
       , spec_type_desc
-      , max(case when org_name is not null then 1 else 0 end) as PositiveCulture
+      , max(case when org_name is not null and org_name != '' then 1 else 0 end) as PositiveCulture
     from mimiciii.microbiologyevents
     group by hadm_id, chartdate, charttime, spec_type_desc
     )
