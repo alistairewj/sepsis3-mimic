@@ -33,6 +33,24 @@ def get_qsofa(con):
     qsofa = pd.read_sql_query(query,con)
     return qsofa
 
+# LODS
+def get_lods(con):
+    query = 'SET search_path to ' + schema_name + ';' + \
+    """
+    select icustay_id
+    , LODS
+    , neurologic as neurologic_lods
+    , cardiovascular as cardiovascular_lods
+    , renal as renal_lods
+    , pulmonary as pulmonary_lods
+    , hematologic as hematologic_lods
+    , hepatic as hepatic_lods
+    from lods
+    order by icustay_id
+    """
+
+    lods = pd.read_sql_query(query,con)
+    return lods
 
 # SOFA
 def get_sofa(con):
