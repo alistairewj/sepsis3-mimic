@@ -123,7 +123,7 @@ def test_auroc(pred1, pred2, target, alpha=0.95):
     mu=np.dot(L,theta);
     sigma=np.sqrt(LSL);
     pval = sp.stats.distributions.norm.cdf(0,loc=mu,scale=sigma);
-
+    pval = pval[0][0]
     # 2-sided test, double the tails -> double the p-value
     if mu<0:
         pval=2*(1-pval);
@@ -136,6 +136,23 @@ def test_auroc(pred1, pred2, target, alpha=0.95):
     return pval, ci
 
 #TODO: also allow for comparing using contrast matrix / chi2 test
+
+# bootstrap AUROC
+def bootstrap_auc(pred, target, B=100):
+
+    auc = np.zeros(B,dtype=float)
+    N = len(target)
+
+    for b in range(B):
+        idx = np.random.randint(0, high=N, size=N)
+        auc[b] = calc_auc(pred[idx], target[idx])
+
+    # get confidence intervals using percentiles of AUC
+
+    ci = np.percentile(auc, [5,95])
+    auc = calc_auc(pred, target)
+
+    return auc, ci
 
 # === binormal AUROC is a parametric estimate of the ROC curve
 # can be useful if you have low sample sizes
