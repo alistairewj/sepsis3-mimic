@@ -435,6 +435,18 @@ def get_other_data(con):
         , case when pat.dod <= adm.admittime + interval '30' day then 1 else 0 end
             as THIRTYDAY_EXPIRE_FLAG
 
+          -- in-hospital mortality score
+         ,CONGESTIVE_HEART_FAILURE*(4) + CARDIAC_ARRHYTHMIAS*(4) + VALVULAR_DISEASE*(-3) + PULMONARY_CIRCULATION*(0) +
+          PERIPHERAL_VASCULAR     *(0) + HYPERTENSION*(-1) + PARALYSIS*(0) +
+          OTHER_NEUROLOGICAL      *(7) + CHRONIC_PULMONARY*(0) +
+          DIABETES_UNCOMPLICATED  *(-1) + DIABETES_COMPLICATED*(-4) +
+          HYPOTHYROIDISM          *(0) + RENAL_FAILURE*(3) + LIVER_DISEASE*(4) +
+          PEPTIC_ULCER            *(-9) + AIDS*(0) + LYMPHOMA*(7) +
+          METASTATIC_CANCER       *(9) + SOLID_TUMOR*(0) + RHEUMATOID_ARTHRITIS*(0) +
+          COAGULOPATHY*(3) + OBESITY*(-5) + WEIGHT_LOSS*(4)                      + FLUID_ELECTROLYTE*(6) + BLOOD_LOSS_ANEMIA*(0) +
+          DEFICIENCY_ANEMIAS      *(-4) + ALCOHOL_ABUSE*(0) + DRUG_ABUSE*(-6) +
+          PSYCHOSES               *(-5) + DEPRESSION*(-8)
+          AS elixhauser_hospital
         , ie.los as icu_los
     from icustays ie
     inner join admissions adm
@@ -454,6 +466,7 @@ def get_other_data(con):
         , gender
         , metastatic_cancer
         , diabetes
+        , elixhauser_hospital
         , height -- in centimetres
         , weight -- in kilograms
         , weight / (height/100*height/100) as bmi
