@@ -9,7 +9,6 @@ from sklearn import cross_validation
 from sklearn.grid_search import GridSearchCV
 from sklearn import metrics
 from sklearn.metrics import auc, roc_curve
-from scipy.stats import norm
 
 # create a database connection
 
@@ -793,51 +792,3 @@ def print_demographics(df):
 
         else:
             print('{:20s}').format(curr_var)
-
-def binormal_auroc(X, Y):
-    # calculates the AUROC assuming X and Y are normally distributed
-    # this is frequently called the "Binormal AUROC"
-
-    # X should contain predictions for observations with an outcome of 0
-    # Y should contain predictions for observations with an outcome of 1
-
-    x_mu = np.mean(X)
-    x_s = np.std(X)
-
-    y_mu = np.mean(Y)
-    y_s = np.std(Y)
-
-    a = (y_mu - x_mu) / y_s
-    b = x_s / y_s
-
-    return norm.cdf( a / (np.sqrt(1+(b**2))) )
-
-def binormal_roc(X, Y, thr=None):
-    # calculates the ROC curve assuming X and Y are normally distributed
-    # uses evenly spaced points specified by thr
-    # this is frequently called the "Binormal AUROC"
-
-    # X should contain predictions for observations with an outcome of 0
-    # Y should contain predictions for observations with an outcome of 1
-
-    if thr is None:
-        # get all possible criterion values
-        c_vec = np.unique(np.concatenate([X, Y]))
-
-        # create a vector of thresholds
-        c_vec = np.linspace(np.min(c_vec), np.max(c_vec), 101)
-
-
-    x_mu = np.mean(X)
-    x_s = np.std(X)
-
-    y_mu = np.mean(Y)
-    y_s = np.std(Y)
-
-    a = (y_mu - x_mu) / y_s
-    b = x_s / y_s
-
-    fpr = norm.cdf( (x_mu - c_vec) / x_s )
-    tpr = norm.cdf( (y_mu - c_vec) / y_s )
-
-    return fpr, tpr, c_vec
