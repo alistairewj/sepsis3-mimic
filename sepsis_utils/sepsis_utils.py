@@ -8,6 +8,8 @@ import numpy as np
 
 import roc_utils as ru
 
+from statsmodels.formula.api import logit
+
 import sklearn
 from sklearn import cross_validation
 from sklearn.grid_search import GridSearchCV
@@ -849,6 +851,53 @@ def print_auc_table(df, preds_header, target_header):
 
     for p in range(P):
         print('{:5s}'.format(preds_header[p]),end='\t')
+        for q in range(P):
+            if p==q:
+                auc, ci = ru.bootstrap_auc(preds[p], y, B=100)
+                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
+            elif q>p:
+                #TODO: cronenback alpha
+                print('{:20s}'.format(''),end='\t')
+
+            else:
+                pval, ci = ru.test_auroc(preds[p], preds[q], y)
+                if pval > 0.001:
+                    print('{:0.3f}{:15s}'.format(pval, ''), end='\t')
+                else:
+                    print('< 0.001{:15s}'.format(''),end='\t')
+
+
+        print('')
+
+
+def print_auc_table_baseline(df, preds_header, target_header):
+    # prints a table of AUROCs and p-values
+    # also train the baseline model using df_mdl
+
+    P = len(preds_header)
+    y = df[target_header].values == 1
+
+    print('{:5s}'.format(''),end='\t')
+
+    preds = list()
+    for p in range(P):
+        score_added = preds_header[p]
+        print('{:20s}'.format(preds_header[p]),end='\t')
+
+        # build the models and get the predictions
+        model = logit(formula=target_header + " ~ age + elixhauser_hospital" +
+        " + race_black + race_other + is_male + " + score_added,
+        data=df).fit(disp=0)
+
+        # create a list, each element containing the predictions
+        # we will update this to be model predictions
+        preds.append(model.predict())
+
+    print('')
+
+    for p in range(P):
+        print('{:5s}'.format(preds_header[p]),end='\t')
+
         for q in range(P):
             if p==q:
                 auc, ci = ru.bootstrap_auc(preds[p], y, B=100)
