@@ -820,15 +820,15 @@ def print_demographics(df):
     for i, curr_var in enumerate(all_vars):
         if curr_var in df.columns:
             if curr_var in ['age','bmi','icu_los']: # report mean +- STD
-                print('{:20s}\t{:2.2f} +- {:2.2f}').format(curr_var, df[curr_var].mean(), df[curr_var].std())
+                print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
             elif curr_var in ['gender']: # convert from M/F
-                print('{:20s}\t{:2.2f}%').format(curr_var, 100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0])
+                print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
             elif curr_var in ['hospital_expire_flag','thirtyday_expire_flag','mech_vent']:
-                print('{:20s}\t{:2.2f}%').format(curr_var, 100.0*(df[curr_var].mean()).astype(float))
+                print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*(df[curr_var].mean()).astype(float)))
                 # binary, report percentage
 
         else:
-            print('{:20s}').format(curr_var)
+            print('{:20s}'.format(curr_var))
 
 def print_auc_table(df, preds_header, target_header):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
