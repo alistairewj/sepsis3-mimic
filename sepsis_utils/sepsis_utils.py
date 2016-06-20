@@ -10,6 +10,8 @@ from sklearn.grid_search import GridSearchCV
 from sklearn import metrics
 from sklearn.metrics import auc, roc_curve
 
+from __future__ import print_function
+
 # create a database connection
 
 # below config used on pc70
@@ -828,7 +830,7 @@ def print_demographics(df):
         else:
             print('{:20s}').format(curr_var)
 
-def print_auc_table_s3(df, preds_header, target_header):
+def print_auc_table(df, preds_header, target_header):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
     preds = [df[x].values for x in preds_header]
     y = df[target_header].values == 1
