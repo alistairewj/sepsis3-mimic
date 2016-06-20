@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import os
 import psycopg2
@@ -9,8 +11,6 @@ from sklearn import cross_validation
 from sklearn.grid_search import GridSearchCV
 from sklearn import metrics
 from sklearn.metrics import auc, roc_curve
-
-from __future__ import print_function
 
 # create a database connection
 
@@ -766,24 +766,24 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
     print('Metric')
     if header is not None:
         for i, hdr_name in enumerate(header):
-            print '\t{:5s}'.format(hdr_name) ,
+            print('\t{:5s}'.format(hdr_name), end='')
         print('') # newline
 
     # print the names of the predictions, if they were provided
     print('') # newline
     if yhat_names is not None:
         for i, yhat_name in enumerate(yhat_names):
-            print '\t{:5s}'.format(yhat_name) , # print('{:5s}', end='\t') in Python 3
+            print('\t{:5s}'.format(yhat_name), end='')
         print('') # newline
 
     # print the stats calculated
     for n, stats_name in enumerate(stats_names):
-        print'{:5s}'.format(stats_name) ,
+        print('{:5s}'.format(stats_name), end='')
         for i, yhat_name in enumerate(yhat_names):
             if n < 4: # use integer format for the tp/fp
-                print '\t{:5.0f}'.format(stats_all[i,n]) ,
+                print('\t{:5.0f}'.format(stats_all[i,n]), end='')
             else: # use decimal format for the sensitivity, specificity, etc
-                print '\t{:5.2f}'.format(stats_all[i,n]) ,
+                print('\t{:5.2f}'.format(stats_all[i,n]), end='')
 
         print('') # newline
 
