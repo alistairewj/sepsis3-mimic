@@ -6,6 +6,8 @@ import psycopg2
 import pandas as pd
 import numpy as np
 
+import roc_utils as ru
+
 import sklearn
 from sklearn import cross_validation
 from sklearn.grid_search import GridSearchCV
@@ -424,6 +426,7 @@ def get_other_data(con):
     select ie.icustay_id, ie.hadm_id
         , round((cast(adm.admittime as date) - cast(pat.dob as date)) / 365.242, 4) as age
         , pat.gender
+        , adm.ethnicity
 
         , eli.metastatic_cancer
         , case when eli.diabetes_uncomplicated = 1
@@ -470,6 +473,7 @@ def get_other_data(con):
         icustay_id
         , age
         , gender
+        , ethnicity
         , metastatic_cancer
         , diabetes
         , elixhauser_hospital
