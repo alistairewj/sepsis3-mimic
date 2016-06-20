@@ -437,7 +437,7 @@ def get_other_data(con):
 
           -- in-hospital mortality score
          ,
-        CONGESTIVE_HEART_FAILURE    *(4)    + CARDIAC_ARRHYTHMIAS   *(4) + 
+        CONGESTIVE_HEART_FAILURE    *(4)    + CARDIAC_ARRHYTHMIAS   *(4) +
         VALVULAR_DISEASE            *(-3)   + PULMONARY_CIRCULATION *(0) +
         PERIPHERAL_VASCULAR         *(0)    + HYPERTENSION*(-1) + PARALYSIS*(0) +
         OTHER_NEUROLOGICAL          *(7)    + CHRONIC_PULMONARY*(0) +
@@ -827,3 +827,36 @@ def print_demographics(df):
 
         else:
             print('{:20s}').format(curr_var)
+
+def print_auc_table_s3(df, preds_header, target_header):
+    # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
+    preds = [df[x].values for x in preds_header]
+    y = df[target_header].values == 1
+    P = len(preds)
+
+    print('{:5s}'.format(''),end='\t')
+
+    for p in range(P):
+        print('{:20s}'.format(preds_header[p]),end='\t')
+
+    print('')
+
+    for p in range(P):
+        print('{:5s}'.format(preds_header[p]),end='\t')
+        for q in range(P):
+            if p==q:
+                auc, ci = ru.bootstrap_auc(preds[p], y, B=100)
+                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
+            elif q>p:
+                #TODO: cronenback alpha
+                print('{:20s}'.format(''),end='\t')
+
+            else:
+                pval, ci = ru.test_auroc(preds[p], preds[q], y)
+                if pval > 0.001:
+                    print('{:0.3f}{:15s}'.format(pval, ''), end='\t')
+                else:
+                    print('< 0.001{:15s}'.format(''),end='\t')
+
+
+        print('')
