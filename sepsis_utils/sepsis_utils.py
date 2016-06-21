@@ -915,3 +915,50 @@ def print_auc_table_baseline(df, preds_header, target_header):
 
 
         print('')
+
+
+def print_auc_table_given_preds(preds, target, preds_header=None):
+    # prints a table of AUROCs and p-values
+    # also train the baseline model using df_mdl
+    # preds is a dictionary of predictions
+    
+    if preds_header is None:
+        preds_header = preds.keys()
+
+    P = len(preds_header)
+    y = target == 1
+
+    print('{:5s}'.format(''),end='\t')
+
+    # print header line
+    for p in range(P):
+        print('{:20s}'.format(preds_header[p]),end='\t')
+    print('')
+
+    for p in range(P):
+        print('{:5s}'.format(preds_header[p]),end='\t')
+        pname = preds_header[p]
+
+        for q in range(P):
+            qname = preds_header[q]
+            if pname not in preds:
+                print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
+            elif p==q:
+                auc, ci = ru.bootstrap_auc(preds[pname], y, B=100)
+                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
+            elif q>p:
+                #TODO: cronenback alpha
+                print('{:20s}'.format(''),end='\t')
+
+            else:
+                if qname not in preds:
+                    print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
+                else:
+                    pval, ci = ru.test_auroc(preds[pname], preds[qname], y)
+                    if pval > 0.001:
+                        print('{:0.3f}{:15s}'.format(pval, ''), end='\t')
+                    else:
+                        print('< 0.001{:15s}'.format(''),end='\t')
+
+
+        print('')
