@@ -160,7 +160,13 @@ def bootstrap_auc(pred, target, B=100):
 # assumes that the predictor is normally distributed, so sometimes it helps to
 # transform the predictor to be more normally distributed, e.g. apply log, etc.
 
-def binormal_ab(X,Y):
+def binormal_auroc(X, Y):
+    # calculates the AUROC assuming X and Y are normally distributed
+    # this is frequently called the "Binormal AUROC"
+
+    # X should contain predictions for observations with an outcome of 1
+    # Y should contain predictions for observations with an outcome of 0
+
     x_mu = np.mean(X)
     x_s = np.std(X)
 
@@ -170,16 +176,6 @@ def binormal_ab(X,Y):
     a = (x_mu - y_mu) / x_s
     b = y_s / x_s
 
-    return a, b
-
-def binormal_auroc(X, Y):
-    # calculates the AUROC assuming X and Y are normally distributed
-    # this is frequently called the "Binormal AUROC"
-
-    # X should contain predictions for observations with an outcome of 1
-    # Y should contain predictions for observations with an outcome of 0
-
-    a, b = get_binormal_ab(X, Y)
     return norm.cdf( a / (np.sqrt(1+(b**2))) )
 
 def binormal_roc(X, Y, thr=None):
@@ -198,9 +194,16 @@ def binormal_roc(X, Y, thr=None):
         c_vec = np.linspace(np.min(c_vec), np.max(c_vec), 101)
 
 
-    a, b = get_binormal_ab(X, Y)
+    x_mu = np.mean(X)
+    x_s = np.std(X)
 
-    fpr = norm.cdf( (np.mean(Y) - c_vec) / np.std(Y) )
-    tpr = norm.cdf( (np.mean(X) - c_vec) / np.std(X) )
+    y_mu = np.mean(Y)
+    y_s = np.std(Y)
+
+    a = (x_mu - y_mu) / x_s
+    b = y_s / x_s
+
+    fpr = norm.cdf( (y_mu - c_vec) / y_s )
+    tpr = norm.cdf( (x_mu - c_vec) / x_s )
 
     return fpr, tpr, c_vec
