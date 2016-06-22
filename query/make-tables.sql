@@ -20,8 +20,8 @@ BEGIN;
 -- ----------------------------- --
 
 -- Generate the scores
-\i sofa.sql
-\i sirs.sql
-\i lods.sql
+\i tbls/sofa.sql
+\i tbls/sirs.sql
+\i tbls/lods.sql
 
 COMMIT;
