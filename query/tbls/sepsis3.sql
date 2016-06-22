@@ -81,6 +81,8 @@ select
     , sirs.sirs
     , lods.lods
     , qsofa.qsofa
+
+    , case when sofa.sofa >= 2 and qsofa.qsofa >= 2 then 1 else 0 end as sepsis3
 from t1
 inner join firststay
   on t1.icustay_id = firststay.icustay_id
