@@ -25,4 +25,7 @@ BEGIN;
 \i tbls/lods.sql
 \i tbls/qsofa.sql
 
+-- Generate the final table
+\i tbls/sepsis3.sql
+
 COMMIT;
