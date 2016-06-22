@@ -23,5 +23,6 @@ BEGIN;
 \i tbls/sofa.sql
 \i tbls/sirs.sql
 \i tbls/lods.sql
+\i tbls/qsofa.sql
 
 COMMIT;
