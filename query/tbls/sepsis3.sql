@@ -85,6 +85,8 @@ select
     , sofa.sofa as sofa_si
     , sirs.sirs as sirs_si
     , lods.lods as lods_si
+    -- modified lods "did not contain urine output ..., prothrombin, or urea levels"
+    , mlods.mlods as mlods_si
     , qsofa.qsofa as qsofa_si
     , case
         when sofa.sofa >= 2 and qsofa.qsofa >= 2 then 1
@@ -97,7 +99,7 @@ select
     , case
         when so.sofa >= 2 and qs.qsofa >= 2 then 1
       else 0 end as sepsis3
-
+    , ml.mlods as mlods
 
     , firststay.rn as icustay_num
     , firststay.adult
@@ -112,6 +114,8 @@ left join SIRS_si sirs
   on t1.icustay_id = sirs.icustay_id
 left join LODS_si lods
   on t1.icustay_id = lods.icustay_id
+left join MLODS_si mlods
+  on t1.icustay_id = mlods.icustay_id
 left join QSOFA_si qsofa
   on t1.icustay_id = qsofa.icustay_id
 left join SOFA so
@@ -120,6 +124,8 @@ left join SIRS si
   on t1.icustay_id = si.icustay_id
 left join LODS lo
   on t1.icustay_id = lo.icustay_id
+left join MLODS ml
+  on t1.icustay_id = ml.icustay_id
 left join QSOFA qs
   on t1.icustay_id = qs.icustay_id
 

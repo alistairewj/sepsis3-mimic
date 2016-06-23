@@ -24,6 +24,7 @@ BEGIN;
 \i tbls/sirs-si.sql
 \i tbls/lods-si.sql
 \i tbls/qsofa-si.sql
+\i tbls/mlods-si.sql
 
 -- Generate the final table
 \i tbls/sepsis3.sql
