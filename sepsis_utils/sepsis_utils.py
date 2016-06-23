@@ -188,7 +188,7 @@ def print_demographics(df):
     'thirtyday_expire_flag':'binary',
     'icu_los':'median',
     'hosp_los':'median',
-    'mech_vent':'binary',
+    'vent':'binary',
     'race_black':'binary',
     'race_other':'binary',
     'elixhauser_hospital':'continuous',
