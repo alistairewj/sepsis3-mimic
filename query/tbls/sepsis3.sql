@@ -54,11 +54,14 @@ left join ANGUS a
 , firststay as
 (
 select ie.icustay_id
+    , case
+        when pat.dob < ie.intime - interval '16' year
+          then 1
+      else 0 end as adult
     , ROW_NUMBER() over (partition by ie.subject_id order by intime) as rn
 from icustays ie
 inner join patients pat
     on ie.subject_id = pat.subject_id
-    and pat.dob < ie.intime - interval '16' year
 )
 select
       t1.icustay_id
@@ -83,12 +86,24 @@ select
     , sirs.sirs
     , lods.lods
     , qsofa.qsofa
+    , case
+        when sofa.sofa >= 2 and qsofa.qsofa >= 2 then 1
+      else 0 end as sepsis3
 
-    , case when sofa.sofa >= 2 and qsofa.qsofa >= 2 then 1 else 0 end as sepsis3
+    , so.sofa as sofa_firstday
+    , si.sirs as sirs_firstday
+    , lo.lods as lods_firstday
+    , qs.qsofa as qsofa_firstday
+    , case
+        when so.sofa >= 2 and qs.qsofa >= 2 then 1
+      else 0 end as sepsis3_firstday
+
+
+    , firststay.rn as icustay_num
+    , firststay.adult
 from t1
 inner join firststay
   on t1.icustay_id = firststay.icustay_id
-  and firststay.rn = 1
 inner join suspinfect s
   on t1.icustay_id = s.icustay_id
 left join SOFA_si sofa
@@ -99,5 +114,13 @@ left join LODS_si lods
   on t1.icustay_id = lods.icustay_id
 left join QSOFA_si qsofa
   on t1.icustay_id = qsofa.icustay_id
-where s.suspected_infection_time is not null
+left join SOFA so
+  on t1.icustay_id = so.icustay_id
+left join SIRS si
+  on t1.icustay_id = si.icustay_id
+left join LODS lo
+  on t1.icustay_id = lo.icustay_id
+left join QSOFA qs
+  on t1.icustay_id = qs.icustay_id
+
 order by t1.icustay_id;
