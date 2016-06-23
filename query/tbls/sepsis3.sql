@@ -82,21 +82,21 @@ select
     , angus
     , icu_los
 
-    , sofa.sofa
-    , sirs.sirs
-    , lods.lods
-    , qsofa.qsofa
+    , sofa.sofa as sofa_si
+    , sirs.sirs as sirs_si
+    , lods.lods as lods_si
+    , qsofa.qsofa as qsofa_si
     , case
         when sofa.sofa >= 2 and qsofa.qsofa >= 2 then 1
-      else 0 end as sepsis3
+      else 0 end as sepsis3_si
 
-    , so.sofa as sofa_firstday
-    , si.sirs as sirs_firstday
-    , lo.lods as lods_firstday
-    , qs.qsofa as qsofa_firstday
+    , so.sofa as sofa
+    , si.sirs as sirs
+    , lo.lods as lods
+    , qs.qsofa as qsofa
     , case
         when so.sofa >= 2 and qs.qsofa >= 2 then 1
-      else 0 end as sepsis3_firstday
+      else 0 end as sepsis3
 
 
     , firststay.rn as icustay_num
