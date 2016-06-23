@@ -37,6 +37,7 @@ select ie.icustay_id, ie.hadm_id
     PSYCHOSES                   *(-5)   + DEPRESSION*(-8)
       AS elixhauser_hospital
     , ie.los as icu_los
+    , extract(epoch from (adm.dischtime - adm.admittime))/60.0/60.0/24.0 as hosp_los
 from icustays ie
 inner join admissions adm
     on ie.hadm_id = adm.hadm_id
@@ -81,6 +82,7 @@ select
     , THIRTYDAY_EXPIRE_FLAG
     , angus
     , icu_los
+    , hosp_los
 
     , sofa.sofa as sofa_si
     , sirs.sirs as sirs_si
