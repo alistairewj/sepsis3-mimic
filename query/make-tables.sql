@@ -20,10 +20,10 @@ BEGIN;
 -- ----------------------------- --
 
 -- Generate the scores
-\i tbls/sofa.sql
-\i tbls/sirs.sql
-\i tbls/lods.sql
-\i tbls/qsofa.sql
+\i tbls/sofa-si.sql
+\i tbls/sirs-si.sql
+\i tbls/lods-si.sql
+\i tbls/qsofa-si.sql
 
 -- Generate the final table
 \i tbls/sepsis3.sql
