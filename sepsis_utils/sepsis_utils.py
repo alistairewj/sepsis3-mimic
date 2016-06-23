@@ -713,9 +713,9 @@ def print_cm(y, yhat):
     FN = cm[1,0]
     TP = cm[1,1]
     N = TN+FP+FN+TP
-    print('   \t{:6s}\t{:6s}'.format('yhat=0','yhat=1'))
-    print('y=0\t{:6g}\t{:6g}\tNPV={:2.2f}'.format(cm[0,0],cm[0,1], 100.0*TN / (TN+FN))) # NPV
-    print('y=1\t{:6g}\t{:6g}\tPPV={:2.2f}'.format(cm[1,0],cm[1,1], 100.0*TP / (TP+FP))) # PPV
+    print('      \t{:6s}\t{:6s}'.format('y=0','y=1'))
+    print('yhat=0\t{:6g}\t{:6g}\tNPV={:2.2f}'.format(cm[0,0],cm[1,0], 100.0*TN / (TN+FN))) # NPV
+    print('yhat=1\t{:6g}\t{:6g}\tPPV={:2.2f}'.format(cm[0,1],cm[1,1], 100.0*TP / (TP+FP))) # PPV
     # add sensitivity/specificity as the bottom line
     print('   \t{:2.2f}\t{:2.2f}\tAcc={:2.2f}'.format(100.0*TN/(TN+FP), 100.0*TP/(TP+FN), 100.0*(TP+TN)/N))
     print('   \tSpec\tSens')
@@ -921,7 +921,7 @@ def print_auc_table_given_preds(preds, target, preds_header=None):
     # prints a table of AUROCs and p-values
     # also train the baseline model using df_mdl
     # preds is a dictionary of predictions
-    
+
     if preds_header is None:
         preds_header = preds.keys()
 
