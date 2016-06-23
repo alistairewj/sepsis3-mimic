@@ -103,11 +103,19 @@ select
 
     , firststay.rn as icustay_num
     , firststay.adult
+    , case when vent.starttime is not null then 1 else 0 end as vent
 from t1
 inner join firststay
   on t1.icustay_id = firststay.icustay_id
 inner join suspinfect s
   on t1.icustay_id = s.icustay_id
+left join
+  ( select icustay_id, min(starttime) as starttime
+    from ventdurations
+    group by icustay_id
+  ) vent
+  on t1.icustay_id = vent.icustay_id
+  and vent.starttime between t1.intime and t1.intime + interval '1' day
 left join SOFA_si sofa
   on t1.icustay_id = sofa.icustay_id
 left join SIRS_si sirs
