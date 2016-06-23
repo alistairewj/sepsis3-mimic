@@ -183,11 +183,11 @@ with ab as
   from icustays ie
   left join mv
       on ie.icustay_id = mv.icustay_id
-      and mv.first_antibiotic_time between ie.intime and ie.intime + interval '24' hour
+      and mv.first_antibiotic_time between ie.intime and ie.outtime
       and mv.rn = 1
   left join cv
       on ie.icustay_id = cv.icustay_id
-      and cv.first_antibiotic_time between ie.intime and ie.intime + interval '24' hour
+      and cv.first_antibiotic_time between ie.intime and ie.outtime
       and cv.rn = 1
 )
 , me as
@@ -196,7 +196,7 @@ with ab as
     , chartdate, charttime
     , spec_type_desc
     , max(case when org_name is not null and org_name != '' then 1 else 0 end) as PositiveCulture
-  from mimiciii.microbiologyevents
+  from microbiologyevents
   group by hadm_id, chartdate, charttime, spec_type_desc
 )
 , ab_fnl as
@@ -215,7 +215,8 @@ with ab as
     , me24.positiveculture as next24_positiveculture
     , me24.spec_type_desc as next24_specimen
 
-    , ROW_NUMBER() over (partition by ab_tbl.icustay_id order by coalesce(me72.charttime, me24.charttime, me72.chartdate))
+    , ROW_NUMBER() over (partition by ab_tbl.icustay_id
+      order by coalesce(me72.charttime, me24.charttime, me72.chartdate))
         as rn
   from ab_tbl
   -- blood culture in last 72 hours
