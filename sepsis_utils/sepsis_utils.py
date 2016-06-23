@@ -180,18 +180,31 @@ def print_stats_to_file(filename, yhat_names, stats_all):
     f.close()
 
 def print_demographics(df):
-    all_vars = ['age','gender','bmi','hospital_expire_flag','thirtyday_expire_flag',
-      'icu_los','hosp_los','mech_vent'] #
+    # create a dictionary which maps each variable to a data type
+    all_vars = {'age':'continuous',
+    'gender':'gender', # handled specially
+    'bmi':'continuous',
+    'hospital_expire_flag':'binary',
+    'thirtyday_expire_flag':'binary',
+    'icu_los':'median',
+    'hosp_los':'median',
+    'mech_vent':'binary',
+    'race_black':'binary',
+    'race_other':'binary',
+    'elixhauser_hospital':'continuous',
+    'sirs':'median','sofa':'median','qsofa':'median','mlods':'median'}
 
     for i, curr_var in enumerate(all_vars):
         if curr_var in df.columns:
-            if curr_var in ['age','bmi','icu_los']: # report mean +- STD
+            if all_vars[curr_var] == 'continuous': # report mean +- STD
                 print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
-            elif curr_var in ['gender']: # convert from M/F
+            elif all_vars[curr_var] == 'gender': # convert from M/F
                 print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
-            elif curr_var in ['hospital_expire_flag','thirtyday_expire_flag','mech_vent']:
+            elif all_vars[curr_var] == 'binary':
                 print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*(df[curr_var].mean()).astype(float)))
                 # binary, report percentage
+            elif all_vars[curr_var] == 'median': # report median +- STD
+                print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
 
         else:
             print('{:20s}'.format(curr_var))
