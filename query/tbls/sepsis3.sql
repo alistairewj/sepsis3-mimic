@@ -3,6 +3,7 @@ CREATE MATERIALIZED VIEW SEPSIS3 AS
 with t1 as
 (
 select ie.icustay_id, ie.hadm_id
+    , ie.intime, ie.outtime
     , round((cast(adm.admittime as date) - cast(pat.dob as date)) / 365.242, 4) as age
     , pat.gender
     , adm.ethnicity
@@ -61,6 +62,7 @@ inner join patients pat
 )
 select
       t1.icustay_id
+    , t1.intime, t1.outtime
     , s.suspected_infection_time
     , s.positiveculture
     , age
