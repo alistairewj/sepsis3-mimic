@@ -179,7 +179,7 @@ def print_stats_to_file(filename, yhat_names, stats_all):
 
     f.close()
 
-def print_demographics(df):
+def print_demographics(df, idx=None):
     # create a dictionary which maps each variable to a data type
     all_vars = {'age':'continuous',
     'gender':'gender', # handled specially
@@ -193,21 +193,47 @@ def print_demographics(df):
     'race_other':'binary',
     'elixhauser_hospital':'continuous',
     'sirs':'median','sofa':'median','qsofa':'median','mlods':'median'}
+    if idx is None:
+        # print demographics for entire dataset
+        for i, curr_var in enumerate(all_vars):
+            if curr_var in df.columns:
+                if all_vars[curr_var] == 'continuous': # report mean +- STD
+                    print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
+                elif all_vars[curr_var] == 'gender': # convert from M/F
+                    print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
+                elif all_vars[curr_var] == 'binary':
+                    print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*(df[curr_var].mean()).astype(float)))
+                    # binary, report percentage
+                elif all_vars[curr_var] == 'median': # report median +- STD
+                    print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
 
-    for i, curr_var in enumerate(all_vars):
-        if curr_var in df.columns:
-            if all_vars[curr_var] == 'continuous': # report mean +- STD
-                print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
-            elif all_vars[curr_var] == 'gender': # convert from M/F
-                print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
-            elif all_vars[curr_var] == 'binary':
-                print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*(df[curr_var].mean()).astype(float)))
-                # binary, report percentage
-            elif all_vars[curr_var] == 'median': # report median +- STD
-                print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
+            else:
+                print('{:20s}'.format(curr_var))
+    else:
+        # print demographics for entire dataset
+        for i, curr_var in enumerate(all_vars):
+            if curr_var in df.columns:
+                if all_vars[curr_var] == 'continuous': # report mean +- STD
+                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}'.format(curr_var,
+                    df[~idx][curr_var].mean(), df.loc[~idx,curr_var].std(),
+                    df[idx][curr_var].mean(), df.loc[idx,curr_var].std()))
+                elif all_vars[curr_var] == 'gender': # convert from M/F
+                    print('{:20s}\t{:2.2f}%\t{:2.2f}%\t'.format(curr_var,
+                    100.0*np.sum(df[~idx][curr_var].values=='M').astype(float) / df.shape[0],
+                    100.0*np.sum(df[idx][curr_var].values=='M').astype(float) / df.shape[0]))
+                elif all_vars[curr_var] == 'binary':
+                    print('{:20s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var,
+                    100.0*(df[~idx][curr_var].mean()).astype(float),
+                    100.0*(df[idx][curr_var].mean()).astype(float)))
+                    # binary, report percentage
+                elif all_vars[curr_var] == 'median': # report median +- STD
+                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}'.format(curr_var,
+                    df.loc[~idx][curr_var].median(), df.loc[~idx][curr_var].std(),
+                    df.loc[idx][curr_var].median(), df.loc[idx][curr_var].std()))
 
-        else:
-            print('{:20s}'.format(curr_var))
+            else:
+                print('{:20s}'.format(curr_var))
+
 
 def calc_predictions(df, preds_header, target_header, model=None):
     if model is None:
