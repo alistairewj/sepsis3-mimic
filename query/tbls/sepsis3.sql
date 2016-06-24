@@ -37,6 +37,7 @@ select ie.icustay_id, ie.hadm_id
     PSYCHOSES                   *(-5)   + DEPRESSION*(-8)
       AS elixhauser_hospital
     , ie.los as icu_los
+    , labs.lactate_max
     , extract(epoch from (adm.dischtime - adm.admittime))/60.0/60.0/24.0 as hosp_los
 from icustays ie
 inner join admissions adm
@@ -51,6 +52,8 @@ left join weightfirstday wt
     on ie.icustay_id = wt.icustay_id
 left join ANGUS a
     on ie.hadm_id = a.hadm_id
+left join labsfirstday labs
+    on ie.icustay_id = labs.icustay_id
 )
 , firststay as
 (
@@ -83,7 +86,7 @@ select
     , angus
     , icu_los
     , hosp_los
-
+    , lactate_max
     , sofa.sofa as sofa_si
     , sirs.sirs as sirs_si
     , lods.lods as lods_si
