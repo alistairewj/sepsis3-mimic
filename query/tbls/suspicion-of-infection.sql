@@ -177,7 +177,7 @@ with ab as
 , ab_tbl as
 (
   select
-      ie.subject_id, ie.hadm_id, ie.icustay_id
+      ie.subject_id, ie.hadm_id, ie.icustay_id, ie.intime, ie.outtime
       , coalesce(cv.first_antibiotic_name, mv.first_antibiotic_name) as first_antibiotic_name
       , coalesce(cv.first_antibiotic_time, mv.first_antibiotic_time) as first_antibiotic_time
   from icustays ie
@@ -202,7 +202,7 @@ with ab as
 , ab_fnl as
 (
   select
-    ab_tbl.icustay_id
+    ab_tbl.icustay_id, ab_tbl.intime, ab_tbl.outtime
     , ab_tbl.first_antibiotic_name
     , ab_tbl.first_antibiotic_time
     , me72.charttime as last72_charttime
