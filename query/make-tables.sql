@@ -26,6 +26,8 @@ BEGIN;
 \i tbls/qsofa-si.sql
 \i tbls/mlods-si.sql
 
+\i tbls/qsofa-admission.sql
+
 -- Generate the final table
 \i tbls/sepsis3.sql
 

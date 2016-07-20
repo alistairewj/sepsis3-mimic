@@ -106,6 +106,10 @@ select
       else 0 end as sepsis3
     , ml.mlods as mlods
 
+    -- admission qSOFA:
+    , qsadm.qsofa as qsofa_admit
+    , qsadm.qsofa_worst as qsofa_admit_worst
+
     , firststay.rn as icustay_num
     , firststay.adult
     , case when vent.starttime is not null then 1 else 0 end as vent
@@ -141,5 +145,7 @@ left join MLODS ml
   on t1.icustay_id = ml.icustay_id
 left join QSOFA qs
   on t1.icustay_id = qs.icustay_id
+left join QSOFA_admit qsadm
+  on t1.icustay_id = qsadm.icustay_id
 
 order by t1.icustay_id;
