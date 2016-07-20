@@ -265,6 +265,7 @@ select
   icustay_id
   -- time of suspected infection: either the culture time (if before antibiotic), or the antibiotic time
   , case
+      when first_antibiotic_time > intime + interval '48' hour then null
       when last72_charttime is not null
         then last72_charttime
       when next24_charttime is not null or last72_chartdate is not null
@@ -273,6 +274,7 @@ select
   end as suspected_infection_time
   -- the specimen that was cultured
   , case
+      when first_antibiotic_time > intime + interval '48' hour then null
       when last72_charttime is not null or last72_chartdate is not null
         then last72_specimen
       when next24_charttime is not null
@@ -281,6 +283,7 @@ select
   end as specimen
   -- whether the cultured specimen ended up being positive or not
   , case
+      when first_antibiotic_time > intime + interval '48' hour then null
       when last72_charttime is not null or last72_chartdate is not null
         then last72_positiveculture
       when next24_charttime is not null
