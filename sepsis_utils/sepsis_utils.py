@@ -192,7 +192,7 @@ def print_demographics(df, idx=None):
     'race_black':'binary',
     'race_other':'binary',
     'elixhauser_hospital':'continuous',
-    'sirs':'median','sofa':'median','qsofa':'median','mlods':'median'}
+    'sirs':'median','sofa':'median','qsofa':'median','mlods':'median','lactate_max':'continuous'}
     if idx is None:
         # print demographics for entire dataset
         for i, curr_var in enumerate(all_vars):
@@ -206,6 +206,15 @@ def print_demographics(df, idx=None):
                     # binary, report percentage
                 elif all_vars[curr_var] == 'median': # report median +- STD
                     print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
+                elif all_vars[curr_var] == 'measured':
+                    print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
+
+                if curr_var == 'lactate_max':
+                    # also print measured
+                    print('{:10s}{:10s}\t{:2.2f}%'.format(curr_var.replace('_max',' '), 'measured',
+                    100.0*np.mean(df[curr_var].isnull())))
+                    print('{:10s}{:10s}\t{:2.2f}%'.format(curr_var.replace('_max',' '), '> 2',
+                    100.0*np.mean(df[curr_var] >= 2)))
 
             else:
                 print('{:20s}'.format(curr_var))
@@ -228,8 +237,22 @@ def print_demographics(df, idx=None):
                     # binary, report percentage
                 elif all_vars[curr_var] == 'median': # report median +- STD
                     print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}'.format(curr_var,
-                    df.loc[~idx][curr_var].median(), df.loc[~idx][curr_var].std(),
-                    df.loc[idx][curr_var].median(), df.loc[idx][curr_var].std()))
+                    df[~idx][curr_var].median(), df[~idx][curr_var].std(),
+                    df[idx][curr_var].median(), df[idx][curr_var].std()))
+                elif all_vars[curr_var] == 'measured':
+                    print('{:20s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var,
+                    100.0*np.mean(df[~idx][curr_var].isnull()),
+                    100.0*np.mean(df[idx][curr_var].isnull())))
+
+
+                if curr_var == 'lactate_max':
+                    # also print measured
+                    print('{:10s}{:10s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var.replace('_max',' '), 'measured',
+                    100.0*np.mean(df[~idx][curr_var].isnull()),
+                    100.0*np.mean(df[idx][curr_var].isnull())))
+                    print('{:10s}{:10s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var.replace('_max',' '), '> 2',
+                    100.0*np.mean(df[~idx][curr_var] >= 2),
+                    100.0*np.mean(df[idx][curr_var] >= 2)))
 
             else:
                 print('{:20s}'.format(curr_var))
