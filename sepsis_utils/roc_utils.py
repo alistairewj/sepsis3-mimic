@@ -8,7 +8,26 @@ import scipy as sp
 from sklearn import metrics
 
 def calc_auc(pred, target):
-    return metrics.roc_auc_score(target, pred)
+    # calculate the AUROC given one prediction or a set of predictions
+    # returns a float if only one set of predictions given
+    # returns a tuple if multiple predictions are given
+
+    if len(pred) == len(target):
+        # we are calculating AUROC for a single prediction
+        # encase it in a tuple for compatibility .. unwrap it later !
+        pred = [pred]
+
+    P = len(pred)
+    N = len(target)
+
+    W = list()
+    for p in range(P):
+        W.append(metrics.roc_auc_score(target, pred[p]))
+
+    if len(W)==1:
+        W = W[0]
+
+    return W
     
 def calc_auc_no_ties(pred, target):
     # calculate the AUROC given one prediction or a set of predictions
