@@ -197,7 +197,9 @@ with vitals as
   -- note that if the underlying data is missing, the component is null
   -- eventually these are treated as 0 (normal), but knowing when data is missing is useful for debugging
   select s.*
+  -- qSOFA components factoring in ventilation/vasopressor usage
   , case
+      when vaso = 1 then 1
       when SysBP_Min is null then null
       when SysBP_Min   <= 100 then 1
       else 0 end
@@ -208,12 +210,32 @@ with vitals as
       else 0 end
     as GCS_score
   , case
+      when vent = 1 then 1
       when RespRate_max is null then null
       when RespRate_max   >= 22 then 1
       else 0 end
     as RespRate_score
 
+    -- qSOFA components if we do not factor in ventilation/vasopressor usage
     , case
+        when SysBP_Min is null then null
+        when SysBP_Min   <= 100 then 1
+        else 0 end
+      as SysBP_score_norx
+    , case
+        when GCS_min is null then null
+        when GCS_min   <= 13 then 1
+        else 0 end
+      as GCS_score_norx
+    , case
+        when RespRate_max is null then null
+        when RespRate_max   >= 22 then 1
+        else 0 end
+      as RespRate_score_norx
+
+    -- similar qSOFA using worst values
+    , case
+        when vaso = 1 then 1
         when SysBP_min_worst is null then null
         when SysBP_min_worst   <= 100 then 1
         else 0 end
@@ -224,6 +246,7 @@ with vitals as
         else 0 end
       as GCS_score_worst
     , case
+        when vent = 1 then 1
         when RespRate_max_worst is null then null
         when RespRate_max_worst   >= 22 then 1
         else 0 end
@@ -235,6 +258,10 @@ select s.*
     + coalesce(GCS_score,0)
     + coalesce(RespRate_score,0)
     as qSOFA
+  , coalesce(SysBP_score_norx,0)
+    + coalesce(GCS_score_norx,0)
+    + coalesce(RespRate_score_norx,0)
+    as qSOFA_no_rx
   , coalesce(SysBP_score_worst,0)
     + coalesce(GCS_score_worst,0)
     + coalesce(RespRate_score_worst,0)
