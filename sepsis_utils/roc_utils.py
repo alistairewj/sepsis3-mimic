@@ -23,12 +23,13 @@ def calc_auc(pred, target):
     W = list()
     for p in range(P):
         W.append(metrics.roc_auc_score(target, pred[p]))
+    W = np.asarray(W,dtype=float)
 
     if len(W)==1:
         W = W[0]
 
     return W
-    
+
 def calc_auc_no_ties(pred, target):
     # calculate the AUROC given one prediction or a set of predictions
     # returns a float if only one set of predictions given
