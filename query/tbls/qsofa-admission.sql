@@ -171,12 +171,24 @@ with vitals as
     , min(v.SysBP_Min) as SysBP_min_worst
     , max(v.RespRate_max) as RespRate_max_worst
     , min(gcs.GCS) as GCS_min_worst
+    , max(case when ve.icustay_id is not null then 1 else 0 end) as vent
+    , max(case when va.icustay_id is not null then 1 else 0 end) as vaso
 
   from icustays ie
   left join vitals v
     on ie.icustay_id = v.icustay_id
   left join gcs gcs
     on ie.icustay_id = gcs.icustay_id
+  -- extend the starttime backward 6 hours
+  -- thus, a patient is treated as ventilated if the vent started/ended at most 6 hours after admission
+  -- this also lets us include patients ventilated before ICU admission
+  left join ventdurations ve
+    on ie.icustay_id = ve.icustay_id
+    and ie.intime between ve.starttime - interval '6' hour and ve.endtime + interval '6' hour
+  -- similarly, we look for vasopressor usage on admission
+  left join vasodur va
+    on ie.icustay_id = va.icustay_id
+    and ie.intime between va.starttime - interval '6' hour and va.endtime + interval '6' hour
   group by ie.icustay_id
 )
 , scorecalc as
