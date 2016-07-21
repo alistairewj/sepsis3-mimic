@@ -42,7 +42,7 @@ with vitals as
     left join chartevents ce
       on ie.icustay_id = ce.icustay_id
       and ce.charttime
-      between ie.intime - interval '2' hour
+      between ie.intime - interval '6' hour
           and ie.intime + interval '6' hour
       and ce.itemid in
       (
@@ -108,7 +108,7 @@ with vitals as
     on l.icustay_id = ie.icustay_id
     -- Only get data for the first 6 hours
     and l.charttime
-    between ie.intime - interval '2' hour
+    between ie.intime - interval '6' hour
         and ie.intime + interval '6' hour
     -- Isolate the desired GCS variables
     and l.ITEMID in
