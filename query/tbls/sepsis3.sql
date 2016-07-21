@@ -102,7 +102,7 @@ select
     , lo.lods as lods
     , qs.qsofa as qsofa
     , case
-        when so.sofa >= 2 and qs.qsofa >= 2 then 1
+        when so.sofa >= 2 and qsadm.qsofa >= 2 then 1
       else 0 end as sepsis3
     , ml.mlods as mlods
 
