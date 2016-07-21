@@ -6,7 +6,7 @@
 -- vasopressin - 30051,222315
 -- dopamine - 30043,30307,221662
 
--- Note we *do not* include dobutamine/milrinone as they cause hypertension.
+-- Note we *do not* include dobutamine/milrinone as they cause hypotension.
 
 DROP MATERIALIZED VIEW IF EXISTS VASODUR;
 CREATE MATERIALIZED VIEW VASODUR as
