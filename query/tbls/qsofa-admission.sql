@@ -22,15 +22,14 @@ CREATE MATERIALIZED VIEW QSOFA_admit AS
 -- VITAL SIGNS
 with vitals as
 (
-  SELECT pvt.icustay_id, pvt.charttime
+  SELECT pvt.icustay_id
 
   -- Easier names
-  , (case when VitalID = 2 then valuenum else null end) as SysBP_Min
-  , (case when VitalID = 5 then valuenum else null end) as RespRate_Max
-  , ROW_NUMBER() over (partition by pvt.icustay_id, pvt.VitalID order by charttime) as rn
+  , min(case when VitalID = 2 then valuenum else null end) as SysBP_Min
+  , max(case when VitalID = 5 then valuenum else null end) as RespRate_Max
 
   FROM  (
-    select ie.icustay_id, charttime
+    select ie.icustay_id
     , case
       when itemid in (51,442,455,6701,220179,220050) and valuenum > 0 and valuenum < 400 then 2 -- SysBP
       when itemid in (615,618,220210,224690) and valuenum > 0 and valuenum < 70 then 5 -- RespRate
@@ -61,6 +60,7 @@ with vitals as
       224690 --	Respiratory Rate (Total)
       )
   ) pvt
+  group by pvt.icustay_id
 )
 -- GCS
 , base as
@@ -123,17 +123,13 @@ with vitals as
   group by pvt.ICUSTAY_ID, pvt.charttime
 )
 , gcs as (
-  -- note b.rn=1 gives us the first gcs value, kept here for use later
-  select b.*
-  , b2.GCSVerbal as GCSVerbalPrev
-  , b2.GCSMotor as GCSMotorPrev
-  , b2.GCSEyes as GCSEyesPrev
+  select b.icustay_id
   -- Calculate GCS, factoring in special case when they are intubated and prev vals
   -- note that the coalesce are used to implement the following if:
   --  if current value exists, use it
   --  if previous value exists, use it
   --  otherwise, default to normal
-  , case
+  , min(case
       -- replace GCS during sedation with 15
       when b.GCSVerbal = 0
         then 15
@@ -150,7 +146,7 @@ with vitals as
             coalesce(b.GCSMotor,coalesce(b2.GCSMotor,6))
           + coalesce(b.GCSVerbal,coalesce(b2.GCSVerbal,5))
           + coalesce(b.GCSEyes,coalesce(b2.GCSEyes,4))
-      end as GCS
+      end) as GCS_min
 
   from base b
   -- join to itself within 6 hours to get previous value
@@ -158,19 +154,14 @@ with vitals as
     on b.ICUSTAY_ID = b2.ICUSTAY_ID
     and b.rn = b2.rn+1
     and b2.charttime > b.charttime - interval '6' hour
+  group by b.icustay_id
 )
 , scorecomp as
 (
   select ie.icustay_id
-    -- use the first value we record on admit (i.e. in first 6 hours)
-    , min(case when v.rn = 1 then v.SysBP_Min else null end) as SysBP_Min
-    , max(case when v.rn = 1 then v.RespRate_max else null end) as RespRate_max
-    , min(case when gcs.rn = 1 then gcs.GCS else null end) as GCS_min
-
-    -- use the worst value we record on admit
-    , min(v.SysBP_Min) as SysBP_min_worst
-    , max(v.RespRate_max) as RespRate_max_worst
-    , min(gcs.GCS) as GCS_min_worst
+    , min(v.SysBP_Min) as SysBP_Min
+    , max(v.RespRate_max) as RespRate_max
+    , min(gcs.GCS_min) as GCS_min
     , max(case when ve.icustay_id is not null then 1 else 0 end) as vent
     , max(case when va.icustay_id is not null then 1 else 0 end) as vaso
 
@@ -233,24 +224,6 @@ with vitals as
         else 0 end
       as RespRate_score_norx
 
-    -- similar qSOFA using worst values
-    , case
-        when vaso = 1 then 1
-        when SysBP_min_worst is null then null
-        when SysBP_min_worst   <= 100 then 1
-        else 0 end
-      as SysBP_score_worst
-    , case
-        when GCS_min_worst is null then null
-        when GCS_min_worst   <= 13 then 1
-        else 0 end
-      as GCS_score_worst
-    , case
-        when vent = 1 then 1
-        when RespRate_max_worst is null then null
-        when RespRate_max_worst   >= 22 then 1
-        else 0 end
-      as RespRate_score_worst
   from scorecomp s
 )
 select s.*
@@ -262,9 +235,5 @@ select s.*
     + coalesce(GCS_score_norx,0)
     + coalesce(RespRate_score_norx,0)
     as qSOFA_no_rx
-  , coalesce(SysBP_score_worst,0)
-    + coalesce(GCS_score_worst,0)
-    + coalesce(RespRate_score_worst,0)
-    as qSOFA_worst
 from scorecalc s
 order by icustay_id;

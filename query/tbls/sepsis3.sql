@@ -107,9 +107,8 @@ select
     , ml.mlods as mlods
 
     -- admission qSOFA/SIRS:
-    , qsadm.qsofa as qsofa_admit
+    , qsadm.qsofa as qsofa_admit -- this includes vent/vaso flags
     , qsadm.qsofa_no_rx as qsofa_admit_no_rx
-    , qsadm.qsofa_worst as qsofa_admit_worst -- this includes vent/vaso flags
     , siadm.sirs as sirs_admit
 
     , firststay.rn as icustay_num
