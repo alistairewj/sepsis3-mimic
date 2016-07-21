@@ -58,7 +58,7 @@ def get_data(exclusions=None):
 
     return df
 
-def print_cm(y, yhat):
+def print_cm(y, yhat, header1='y', header2='yhat'):
     print('\nConfusion matrix')
     cm = metrics.confusion_matrix(y, yhat)
     TN = cm[0,0]
@@ -66,9 +66,9 @@ def print_cm(y, yhat):
     FN = cm[1,0]
     TP = cm[1,1]
     N = TN+FP+FN+TP
-    print('      \t{:6s}\t{:6s}'.format('y=0','y=1'))
-    print('yhat=0\t{:6g}\t{:6g}\tNPV={:2.2f}'.format(cm[0,0],cm[1,0], 100.0*TN / (TN+FN))) # NPV
-    print('yhat=1\t{:6g}\t{:6g}\tPPV={:2.2f}'.format(cm[0,1],cm[1,1], 100.0*TP / (TP+FP))) # PPV
+    print('      \t{:6s}\t{:6s}'.format(header1 + '=0', header1 + '=1'))
+    print('{:6s}\t{:6g}\t{:6g}\tNPV={:2.2f}'.format(header2 + '=0', cm[0,0],cm[1,0], 100.0*TN / (TN+FN))) # NPV
+    print('{:6s}\t{:6g}\t{:6g}\tPPV={:2.2f}'.format(header2 + '=1', cm[0,1],cm[1,1], 100.0*TP / (TP+FP))) # PPV
     # add sensitivity/specificity as the bottom line
     print('   \t{:2.2f}\t{:2.2f}\tAcc={:2.2f}'.format(100.0*TN/(TN+FP), 100.0*TP/(TP+FN), 100.0*(TP+TN)/N))
     print('   \tSpec\tSens')
@@ -124,9 +124,12 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
 
     print('Metric')
     if header is not None:
-        for i, hdr_name in enumerate(header):
-            print('\t{:5s}'.format(hdr_name), end='')
-        print('') # newline
+        if type(header)==str:
+            print(''.format(header))
+        else:
+            for i, hdr_name in enumerate(header):
+                print('\t{:5s}'.format(hdr_name), end='')
+            print('') # newline
 
     # print the names of the predictions, if they were provided
     print('') # newline
