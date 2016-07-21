@@ -108,7 +108,8 @@ select
 
     -- admission qSOFA:
     , qsadm.qsofa as qsofa_admit
-    , qsadm.qsofa_worst as qsofa_admit_worst
+    , qsadm.qsofa_no_rx as qsofa_admit_no_rx
+    , qsadm.qsofa_worst as qsofa_admit_worst -- this includes vent/vaso flags
 
     , firststay.rn as icustay_num
     , firststay.adult
