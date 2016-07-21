@@ -98,18 +98,18 @@ select
       else 0 end as sepsis3_si
 
     , so.sofa as sofa
-    , si.sirs as sirs
+    , si.sirs as sirs_24hours
     , lo.lods as lods
-    , qs.qsofa as qsofa
+    , qs.qsofa as qsofa_24hours
     , case
         when so.sofa >= 2 and qsadm.qsofa >= 2 then 1
       else 0 end as sepsis3
     , ml.mlods as mlods
 
     -- admission qSOFA/SIRS:
-    , qsadm.qsofa as qsofa_admit -- this includes vent/vaso flags
-    , qsadm.qsofa_no_rx as qsofa_admit_no_rx
-    , siadm.sirs as sirs_admit
+    , qsadm.qsofa as qsofa -- this includes vent/vaso flags
+    , qsadm.qsofa_no_rx as qsofa_no_rx
+    , siadm.sirs as sirs
 
     , firststay.rn as icustay_num
     , firststay.adult
