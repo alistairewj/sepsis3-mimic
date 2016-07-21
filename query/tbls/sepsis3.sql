@@ -106,10 +106,11 @@ select
       else 0 end as sepsis3
     , ml.mlods as mlods
 
-    -- admission qSOFA:
+    -- admission qSOFA/SIRS:
     , qsadm.qsofa as qsofa_admit
     , qsadm.qsofa_no_rx as qsofa_admit_no_rx
     , qsadm.qsofa_worst as qsofa_admit_worst -- this includes vent/vaso flags
+    , siadm.sirs as sirs_admit
 
     , firststay.rn as icustay_num
     , firststay.adult
@@ -148,5 +149,7 @@ left join QSOFA qs
   on t1.icustay_id = qs.icustay_id
 left join QSOFA_admit qsadm
   on t1.icustay_id = qsadm.icustay_id
+left join SIRS_admit siadm
+  on t1.icustay_id = siadm.icustay_id
 
 order by t1.icustay_id;
