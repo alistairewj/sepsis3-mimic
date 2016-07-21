@@ -4,7 +4,13 @@ import numpy as np
 from scipy.stats import norm
 import scipy as sp
 
+# used to calculate exact AUROC (factoring in ties)
+from sklearn import metrics
+
 def calc_auc(pred, target):
+    return metrics.roc_auc_score(target, pred)
+    
+def calc_auc_no_ties(pred, target):
     # calculate the AUROC given one prediction or a set of predictions
     # returns a float if only one set of predictions given
     # returns a tuple if multiple predictions are given
