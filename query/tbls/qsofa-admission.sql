@@ -235,9 +235,9 @@ select s.*
     + coalesce(GCS_score,0)
     + coalesce(RespRate_score,0)
     as qSOFA
-  , coalesce(SysBP_score,0)
-    + coalesce(GCS_score,0)
-    + coalesce(RespRate_score,0)
+  , coalesce(SysBP_score_worst,0)
+    + coalesce(GCS_score_worst,0)
+    + coalesce(RespRate_score_worst,0)
     as qSOFA_worst
 from scorecalc s
 order by icustay_id;
