@@ -1,6 +1,12 @@
 DROP MATERIALIZED VIEW IF EXISTS SEPSIS3 CASCADE;
 CREATE MATERIALIZED VIEW SEPSIS3 AS
-with t1 as
+with serv as
+(
+    select hadm_id, curr_service
+    , ROW_NUMBER() over (partition by hadm_id order by transfertime) as rn
+    from services
+)
+, t1 as
 (
 select ie.icustay_id, ie.hadm_id
     , ie.intime, ie.outtime
@@ -16,6 +22,10 @@ select ie.icustay_id, ie.hadm_id
 
     , ht.Height
     , wt.Weight
+
+    -- will be used to exclude patients in CSURG or VSURG
+    , s.curr_service as first_service
+
     , adm.HOSPITAL_EXPIRE_FLAG
     , case when pat.dod <= adm.admittime + interval '30' day then 1 else 0 end
         as THIRTYDAY_EXPIRE_FLAG
@@ -52,6 +62,9 @@ left join weightfirstday wt
     on ie.icustay_id = wt.icustay_id
 left join ANGUS a
     on ie.hadm_id = a.hadm_id
+left join serv s
+    on ie.hadm_id = s.hadm_id
+    and s.rn = 1
 left join labsfirstday labs
     on ie.icustay_id = labs.icustay_id
 )
@@ -81,6 +94,10 @@ select
     , height -- in centimetres
     , weight -- in kilograms
     , weight / (height/100*height/100) as bmi
+
+    -- will be used to exclude patients in CSURG or VSURG
+    , first_service
+
     , HOSPITAL_EXPIRE_FLAG
     , THIRTYDAY_EXPIRE_FLAG
     , angus
@@ -150,5 +167,4 @@ left join QSOFA_admit qsadm
   on t1.icustay_id = qsadm.icustay_id
 left join SIRS_admit siadm
   on t1.icustay_id = siadm.icustay_id
-
 order by t1.icustay_id;
