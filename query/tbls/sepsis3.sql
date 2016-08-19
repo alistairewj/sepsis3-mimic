@@ -60,7 +60,7 @@ left join heightfirstday ht
     on ie.icustay_id = ht.icustay_id
 left join weightfirstday wt
     on ie.icustay_id = wt.icustay_id
-left join ANGUS a
+left join ANGUS_SEPSIS a
     on ie.hadm_id = a.hadm_id
 left join serv s
     on ie.hadm_id = s.hadm_id
