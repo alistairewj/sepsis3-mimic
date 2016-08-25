@@ -8,7 +8,7 @@
 
 -- Note we *do not* include dobutamine/milrinone as they cause hypotension.
 
-DROP MATERIALIZED VIEW IF EXISTS VASODUR;
+DROP MATERIALIZED VIEW IF EXISTS VASODUR CASCADE;
 CREATE MATERIALIZED VIEW VASODUR as
 with io_cv as
 (
