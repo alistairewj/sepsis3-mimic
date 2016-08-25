@@ -203,7 +203,12 @@ def print_demographics(df, idx=None):
     'race_black':'binary',
     'race_other':'binary',
     'elixhauser_hospital':'continuous',
-    'sirs':'median','sofa':'median','qsofa':'median','mlods':'median','lactate_max':'continuous'}
+    'sirs':'median',
+    'sofa':'median',
+    'qsofa':'median',
+    'mlods':'median',
+    'lactate_max':'continuous'}
+
     if idx is None:
         # print demographics for entire dataset
         for i, curr_var in enumerate(all_vars):
@@ -211,9 +216,11 @@ def print_demographics(df, idx=None):
                 if all_vars[curr_var] == 'continuous': # report mean +- STD
                     print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
                 elif all_vars[curr_var] == 'gender': # convert from M/F
-                    print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, np.sum(df[curr_var].values=='M'),
+                    100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
                 elif all_vars[curr_var] == 'binary':
-                    print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*(df[curr_var].mean()).astype(float)))
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, df[curr_var].sum(),
+                    100.0*(df[curr_var].mean()).astype(float)))
                     # binary, report percentage
                 elif all_vars[curr_var] == 'median': # report median +- STD
                     print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
@@ -222,9 +229,9 @@ def print_demographics(df, idx=None):
 
                 if curr_var == 'lactate_max':
                     # also print measured
-                    print('{:10s}{:10s}\t{:2.2f}%'.format(curr_var.replace('_max',' '), 'measured',
+                    print('{:20s}\t{:2.2f}%'.format(curr_var.replace('_max',' ') + 'measured',
                     100.0*np.mean(df[curr_var].isnull())))
-                    print('{:10s}{:10s}\t{:2.2f}%'.format(curr_var.replace('_max',' '), '> 2',
+                    print('{:20s}\t{:2.2f}%'.format(curr_var.replace('_max',' ') + '> 2',
                     100.0*np.mean(df[curr_var] >= 2)))
 
             else:
@@ -238,12 +245,16 @@ def print_demographics(df, idx=None):
                     df[~idx][curr_var].mean(), df.loc[~idx,curr_var].std(),
                     df[idx][curr_var].mean(), df.loc[idx,curr_var].std()))
                 elif all_vars[curr_var] == 'gender': # convert from M/F
-                    print('{:20s}\t{:2.2f}%\t{:2.2f}%\t'.format(curr_var,
+                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t'.format(curr_var,
+                    np.sum(df[~idx][curr_var].values=='M'),
                     100.0*np.sum(df[~idx][curr_var].values=='M').astype(float) / df.shape[0],
+                    np.sum(df[idx][curr_var].values=='M'),
                     100.0*np.sum(df[idx][curr_var].values=='M').astype(float) / df.shape[0]))
                 elif all_vars[curr_var] == 'binary':
-                    print('{:20s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var,
+                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)'.format(curr_var,
+                    df[~idx][curr_var].sum(),
                     100.0*(df[~idx][curr_var].mean()).astype(float),
+                    df[idx][curr_var].sum(),
                     100.0*(df[idx][curr_var].mean()).astype(float)))
                     # binary, report percentage
                 elif all_vars[curr_var] == 'median': # report median +- STD
