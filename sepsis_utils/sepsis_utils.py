@@ -31,16 +31,31 @@ def get_data(exclusions=None):
     # e.g. exclusions='adult = 1 and icustay_num = 1' would add
     #   'where adult = 1 and icustay_num = 1' to the end of the query
 
-    # Connect to local postgres version of mimic
-    con = psycopg2.connect(dbname=dbname, user=sqluser)
-
     if exclusions is None:
         query = 'select * from ' + schema_name + '.sepsis3 order by icustay_id'
     else:
         query = 'select * from ' + schema_name + '.sepsis3 ' \
         + 'where ' + exclusions + ' order by icustay_id'
-    df = pd.read_sql_query(query,con)
-    con.close()
+
+    try:
+        # Connect to local postgres version of mimic
+        con = psycopg2.connect(dbname=dbname, user=sqluser)
+        df = pd.read_sql_query(query,con)
+
+    except psycopg2.OperationalError, exception:
+        # failed to log in
+        print('Error when trying to connect to the database!')
+        raise exception
+
+    except pd.io.sql.DatabaseError, exception:
+        # failed to query the data
+        if 'relation "mimiciii.sepsis3" does not exist' in exception.args[0]:
+            print('Could not find the sepsis3 view - did you run the SQL scripts in the query subfolder?')
+        raise exception
+
+    finally:
+        if con:
+            con.close()
 
     # cast datatypes appropriately
     df['suspected_infection_time'] = pd.to_datetime(df['suspected_infection_time'])
