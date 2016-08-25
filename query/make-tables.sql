@@ -1,5 +1,8 @@
 -- As the script is generating many tables, it may take some time.
 
+\c mimic;
+set search_path to mimiciii;
+
 BEGIN;
 -- ----------------------------- --
 -- ---------- STAGE 1 ---------- --
@@ -26,9 +29,11 @@ BEGIN;
 -- ----------------------------- --
 
 -- Severity scores during the first 24 hours
+\i ../mimic-code/severityscores/lods.sql
 \i ../mimic-code/severityscores/mlods.sql
 \i ../mimic-code/severityscores/sirs.sql
 \i ../mimic-code/severityscores/qsofa.sql
+\i ../mimic-code/severityscores/sofa.sql
 
 -- Severity scores at the time of suspected infection
 \i tbls/sofa-si.sql
