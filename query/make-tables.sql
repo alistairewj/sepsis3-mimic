@@ -16,8 +16,8 @@ BEGIN;
 \i tbls/blood-gas-arterial-infect-time.sql
 
 \i tbls/vaso-dur.sql
-\i ../mimic-code/etc/firstday/weight-first-day.sql -- TODO: add to mimic-code
-\i ../mimic-code/etc/firstday/height-first-day.sql -- TODO: add to mimic-code
+\i ../mimic-code/etc/firstday/weight-first-day.sql
+\i ../mimic-code/etc/firstday/height-first-day.sql
 \i ../mimic-code/comorbidity/postgres/elixhauser-ahrq-v37-with-drg.sql
 \i ../mimic-code/sepsis/angus.sql
 
@@ -25,22 +25,20 @@ BEGIN;
 -- ---------- STAGE 2 ---------- --
 -- ----------------------------- --
 
--- TODO: generate all severity scores
-
+-- Severity scores during the first 24 hours
 \i ../mimic-code/severityscores/mlods.sql
-\i ../mimic-code/severityscores/sirs.sql -- TODO: add to mimic-code
-\i ../mimic-code/severityscores/qsofa.sql -- TODO: add to mimic-code
+\i ../mimic-code/severityscores/sirs.sql
+\i ../mimic-code/severityscores/qsofa.sql
 
--- Generate the scores
+-- Severity scores at the time of suspected infection
 \i tbls/sofa-si.sql
 \i tbls/sirs-si.sql
 \i tbls/lods-si.sql
 \i tbls/qsofa-si.sql
 \i tbls/mlods-si.sql
 
-
+-- Severity scores on admission
 \i tbls/qsofa-admission.sql
-
 \i tbls/blood-gas-admission.sql
 \i tbls/sirs-admission.sql
 
