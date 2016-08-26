@@ -474,7 +474,7 @@ def print_auc_table(preds, target, preds_header):
             if ppred not in preds:
                 print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
             elif p==q:
-                auc, ci = ru.bootstrap_auc(preds[ppred], y, B=100)
+                auc, ci = ru.calc_auc(preds[ppred], y, with_ci=True, alpha=0.05)
                 print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
             elif q>p:
                 #TODO: cronenback alpha
@@ -523,7 +523,7 @@ def print_auc_table_to_file(preds, target, preds_header=None, filename=None):
             if pname not in preds:
                 f.write('{}\t'.format('')) # skip this as we do not have the prediction
             elif p==q:
-                auc, ci = ru.bootstrap_auc(preds[pname], y, B=100)
+                auc, ci = ru.calc_auc(preds[pname], y, with_ci=True, alpha=0.05)
                 f.write('{:0.3f} [{:0.3f}, {:0.3f}]\t'.format(auc, ci[0], ci[1]))
             elif q>p:
                 #TODO: cronenback alpha
