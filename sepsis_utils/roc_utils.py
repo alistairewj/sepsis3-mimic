@@ -7,15 +7,23 @@ import scipy as sp
 # used to calculate exact AUROC (factoring in ties)
 from sklearn import metrics
 
-def calc_auc(pred, target):
+def calc_auc(pred, target, with_ci=False, alpha=0.05):
     # calculate the AUROC given one prediction or a set of predictions
     # returns a float if only one set of predictions given
     # returns a tuple if multiple predictions are given
+
+    if type(pred) == 'list':
+        pred = np.asarray(pred,dtype=float)
+    if type(target) == 'list':
+        target = np.asarray(target,dtype=float)
 
     if len(pred) == len(target):
         # we are calculating AUROC for a single prediction
         # encase it in a tuple for compatibility .. unwrap it later !
         pred = [pred]
+        onePred = True
+    else:
+        onePred = False
 
     P = len(pred)
     N = len(target)
@@ -25,10 +33,23 @@ def calc_auc(pred, target):
         W.append(metrics.roc_auc_score(target, pred[p]))
     W = np.asarray(W,dtype=float)
 
-    if len(W)==1:
+    # collapse W down from array if only one prediction given
+    if onePred == True:
         W = W[0]
 
-    return W
+    if with_ci == False:
+        return W
+
+    # calculate confidence interval and also return that
+    S = calc_auc_cov(pred, target)
+
+    if onePred == True:
+        # collapse S into a single value
+        # this allows auc_ci to be a (2,) sized array, rather than (1,2)
+        S = S[0,0]
+
+    auc_ci = norm.ppf([alpha/2.0, 1-(alpha/2.0)], loc=W, scale=np.sqrt(S))
+    return W, auc_ci
 
 def calc_auc_no_ties(pred, target):
     # calculate the AUROC given one prediction or a set of predictions
@@ -67,20 +88,7 @@ def calc_auc_no_ties(pred, target):
 
     return W
 
-
-# test statistical significance of ROC
-#%% Is the SVM better than the NN?
-#% Define a contrast which compares the SVM (2nd model) against NN (4th model)
-#L = [0,1,0,-1]; % must always sum to 0
-#alpha = 0.05; % significance level
-#[ thetaP, thetaCI ] = wilcoxonConfidence(L, S, theta, alpha );
-
 def calc_auc_cov(pred, target):
-    #if len(pred) == len(target):
-    #    # covariance matrices are easy when there is only one predictor!
-
-    #pred = (df.qsofa.values, df.sofa.values)
-    #target = y
 
     P = len(pred) # number of predictors
     N = len(target) # number of observations
