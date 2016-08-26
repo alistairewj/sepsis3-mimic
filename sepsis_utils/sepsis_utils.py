@@ -253,10 +253,10 @@ def print_demographics(df, idx=None):
 
                 if curr_var == 'lactate_max':
                     # also print measured
-                    print('{:20s}\t{:2.2f}%'.format(curr_var.replace('_max',' ') + 'measured',
-                    100.0*np.mean(df[curr_var].isnull())))
-                    print('{:20s}\t{:2.2f}%'.format(curr_var.replace('_max',' ') + '> 2',
-                    100.0*np.mean(df[curr_var] >= 2)))
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var.replace('_max',' ') + 'measured',
+                    np.sum(df[curr_var].isnull()),100.0*np.mean(df[curr_var].isnull())))
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var.replace('_max',' ') + '> 2',
+                    np.sum(df[curr_var] >= 2),100.0*np.mean(df[curr_var] >= 2)))
 
             else:
                 print('{:20s}'.format(curr_var))
