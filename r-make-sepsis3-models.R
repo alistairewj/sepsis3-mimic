@@ -24,10 +24,13 @@ if (length(args)==4) {
 formula = paste(formula, args[4], sep=" + ")
 }
 
-print(formula)
-
 # build the model
 mod.mfp <- mfp(as.formula(formula),data=sep3,family="binomial",verbose=FALSE)
+
+# output model coefficients and standard errors
+print('Summary for MFP model defined by the following formula:')
+print(formula)
+print(summary(mod.mfp))
 
 # output a text file of the predictions
 preds <- predict(mod.mfp,type="response")
