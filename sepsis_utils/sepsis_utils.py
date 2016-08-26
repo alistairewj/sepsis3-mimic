@@ -10,11 +10,7 @@ import roc_utils as ru
 
 from statsmodels.formula.api import logit
 
-import sklearn
-from sklearn import cross_validation
-from sklearn.grid_search import GridSearchCV
 from sklearn import metrics
-from sklearn.metrics import auc, roc_curve
 
 # create a database connection
 
