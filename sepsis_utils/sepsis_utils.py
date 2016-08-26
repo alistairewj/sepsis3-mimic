@@ -261,44 +261,152 @@ def print_demographics(df, idx=None):
             else:
                 print('{:20s}'.format(curr_var))
     else:
-        # print demographics for entire dataset
+        # print demographics split into two groups
+        # also print p-values testing between the two groups
         for i, curr_var in enumerate(all_vars):
             if curr_var in df.columns:
                 if all_vars[curr_var] == 'continuous': # report mean +- STD
-                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}'.format(curr_var,
+                    stat, pvalue = scipy.stats.ttest_ind(df[~idx][curr_var], df[idx][curr_var],
+                    equal_var=False, nan_policy='omit')
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
+                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
                     df[~idx][curr_var].mean(), df.loc[~idx,curr_var].std(),
-                    df[idx][curr_var].mean(), df.loc[idx,curr_var].std()))
+                    df[idx][curr_var].mean(), df.loc[idx,curr_var].std(),
+                    pvalue))
+
                 elif all_vars[curr_var] == 'gender': # convert from M/F
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t'.format(curr_var,
+                    # build the contingency table
+                    tbl = np.array([ [np.sum(df[~idx][curr_var].values=='M'), np.sum(df[idx][curr_var].values=='M')],
+                    [np.sum(df[~idx][curr_var].values!='M'), np.sum(df[idx][curr_var].values!='M')] ])
+
+                    # get the p-value
+                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
+                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
                     np.sum(df[~idx][curr_var].values=='M'),
                     100.0*np.sum(df[~idx][curr_var].values=='M').astype(float) / df.shape[0],
                     np.sum(df[idx][curr_var].values=='M'),
-                    100.0*np.sum(df[idx][curr_var].values=='M').astype(float) / df.shape[0]))
+                    100.0*np.sum(df[idx][curr_var].values=='M').astype(float) / df.shape[0],
+                    pvalue))
+
                 elif all_vars[curr_var] == 'binary':
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)'.format(curr_var,
+                    # build the contingency table
+                    tbl = np.array([ [np.sum(df[~idx][curr_var].values), np.sum(df[idx][curr_var].values)],
+                    [np.sum(1 - df[~idx][curr_var].values), np.sum(1 - df[idx][curr_var].values)] ])
+
+                    # get the p-value
+                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
+                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
                     df[~idx][curr_var].sum(),
                     100.0*(df[~idx][curr_var].mean()).astype(float),
                     df[idx][curr_var].sum(),
-                    100.0*(df[idx][curr_var].mean()).astype(float)))
+                    100.0*(df[idx][curr_var].mean()).astype(float),
+                    pvalue))
                     # binary, report percentage
                 elif all_vars[curr_var] == 'median': # report median +- STD
-                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}'.format(curr_var,
+                    stat, pvalue = scipy.stats.mannwhitneyu(df[~idx][curr_var],
+                    df[idx][curr_var],
+                    use_continuity=True, alternative='two-sided')
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
+                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
                     df[~idx][curr_var].median(), df[~idx][curr_var].std(),
-                    df[idx][curr_var].median(), df[idx][curr_var].std()))
+                    df[idx][curr_var].median(), df[idx][curr_var].std(),
+                    pvalue))
+
                 elif all_vars[curr_var] == 'measured':
+                    # build the contingency table
+                    tbl = np.array([ [np.sum(df[~idx][curr_var].isnull()), np.sum(df[idx][curr_var].isnull())],
+                    [np.sum(~df[~idx][curr_var].isnull()), np.sum(~df[idx][curr_var].isnull())] ])
+
+                    # get the p-value
+                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
                     print('{:20s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var,
+                    np.sum(df[~idx][curr_var].isnull()),
                     100.0*np.mean(df[~idx][curr_var].isnull()),
-                    100.0*np.mean(df[idx][curr_var].isnull())))
+                    np.sum(df[idx][curr_var].isnull()),
+                    100.0*np.mean(df[idx][curr_var].isnull()),
+                    pvalue))
 
 
                 if curr_var == 'lactate_max':
-                    # also print measured
-                    print('{:10s}{:10s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var.replace('_max',' '), 'measured',
+                    # for lactate, we print two additional rows:
+                    # 1) was lactate ever measured?
+                    # 2) was lactate ever > 2 ?
+
+                    # measured...
+                    # build the contingency table
+                    tbl = np.array([ [np.sum(df[~idx][curr_var].isnull()), np.sum(df[idx][curr_var].isnull())],
+                    [np.sum(~df[~idx][curr_var].isnull()), np.sum(~df[idx][curr_var].isnull())] ])
+
+                    # get the p-value
+                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
+                    print('{:10s}{:10s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' '), 'measured',
+                    np.sum(df[~idx][curr_var].isnull()),
                     100.0*np.mean(df[~idx][curr_var].isnull()),
-                    100.0*np.mean(df[idx][curr_var].isnull())))
-                    print('{:10s}{:10s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var.replace('_max',' '), '> 2',
+                    np.sum(df[idx][curr_var].isnull()),
+                    100.0*np.mean(df[idx][curr_var].isnull()),
+                    pvalue))
+
+
+                    # value > 2...
+                    # build the contingency table
+                    tbl = np.array([ [np.sum(df[~idx][curr_var] >= 2), np.sum(df[idx][curr_var] >= 2)],
+                    [np.sum(~(df[~idx][curr_var] >= 2)), np.sum(~(df[idx][curr_var] >= 2))] ])
+
+                    # get the p-value
+                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
+
+                    # print out < 0.01 if it's a very low p-value
+                    if pvalue < 0.01:
+                        pvalue = '< 0.01'
+                    else:
+                        pvalue = '{:0.2f}'.format(pvalue)
+
+                    print('{:10s}{:10s}\t{:4g} ({:2.2f}%)%\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' '), '> 2',
+                    np.sum( df[~idx][curr_var] >= 2 ),
                     100.0*np.mean(df[~idx][curr_var] >= 2),
-                    100.0*np.mean(df[idx][curr_var] >= 2)))
+                    np.sum( df[idx][curr_var] >= 2 ),
+                    100.0*np.mean(df[idx][curr_var] >= 2),
+                    pvalue))
 
             else:
                 print('{:20s}'.format(curr_var))
