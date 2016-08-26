@@ -11,6 +11,7 @@ import roc_utils as ru
 from statsmodels.formula.api import logit
 
 from sklearn import metrics
+import scipy.stats
 
 # create a database connection
 
@@ -96,7 +97,8 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
         y_all = [y_all for i in range(len(yhat_all))]
 
     stats_names = [ 'TN','FP','FN','TP','Sens','Spec','PPV','NPV','F1','DOR']
-    stats_all = np.zeros( [len(yhat_all), len(stats_names)])
+    stats_all = np.zeros( [len(yhat_all), len(stats_names)] )
+    ci = np.zeros( [len(yhat_all), len(stats_names), 2] )
 
     TN = np.zeros(len(yhat_all))
     FP = np.zeros(len(yhat_all))
@@ -111,16 +113,22 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
 
         # confusion matrix is output as int64 - we'd like to calculate percentages
         cm = cm.astype(float)
-
         # to make the code clearer, extract components from confusion matrix
         TN = cm[0,0] # true negatives
         FP = cm[0,1] # false positives
         FN = cm[1,0] # false negatives
         TP = cm[1,1] # true positives
+
         stats_all[i,4] = 100.0*TP/(TP+FN) # Sensitivity
         stats_all[i,5] = 100.0*TN/(TN+FP) # Specificity
         stats_all[i,6] = 100.0*TP/(TP+FP) # PPV
         stats_all[i,7] = 100.0*TN/(TN+FN) # NPV
+
+        # add the CI
+        ci[i,4,:] = binomial_proportion_ci(TP, TP+FN, alpha = 0.05)
+        ci[i,5,:] = binomial_proportion_ci(TN, TN+FP, alpha = 0.05)
+        ci[i,6,:] = binomial_proportion_ci(TP, TP+FP, alpha = 0.05)
+        ci[i,7,:] = binomial_proportion_ci(TN, TN+FN, alpha = 0.05)
 
         # F1, the harmonic mean of PPV/Sensitivity
         stats_all[i,8] = 2.0*(stats_all[i,6] * stats_all[i,4]) / (stats_all[i,6] + stats_all[i,4])
@@ -144,19 +152,23 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
 
     # print the names of the predictions, if they were provided
     print('') # newline
+    print('{:10s}'.format(''),end='') # spacing
     if yhat_names is not None:
         for i, yhat_name in enumerate(yhat_names):
-            print('\t{:5s}'.format(yhat_name), end='')
+            print('\t{:20s}'.format(yhat_name), end='')
         print('') # newline
 
     # print the stats calculated
     for n, stats_name in enumerate(stats_names):
-        print('{:5s}'.format(stats_name), end='')
+        print('{:10s}'.format(stats_name), end='')
         for i, yhat_name in enumerate(yhat_names):
             if n < 4: # use integer format for the tp/fp
-                print('\t{:5.0f}'.format(stats_all[i,n]), end='')
-            else: # use decimal format for the sensitivity, specificity, etc
-                print('\t{:5.2f}'.format(stats_all[i,n]), end='')
+                print('\t{:5.0f} {:10s}'.format(stats_all[i,n], ''), end='')
+            elif n < 8: # print sensitivity, specificity, etc with CI
+                print('\t{:2.2f} [{:2.2f}, {:2.2f}]'.format(stats_all[i,n],
+                ci[i,n,0],ci[i,n,1]),end='')
+            else: # use decimal format for the rest
+                print('\t{:2.2f} {:12s}'.format(stats_all[i,n], ''), end='')
 
         print('') # newline
 
@@ -166,6 +178,20 @@ def print_stats_to_file(filename, yhat_names, stats_all):
     # print the table to a file for convenient viewing
     f = open(filename,'w')
     stats_names = [ 'TN','FP','FN','TP','N','Sens','Spec','PPV','NPV','F1','DOR']
+
+    # derive CIs
+    ci = np.zeros( [stats_all.shape[0], stats_all.shape[1], 2] )
+    for i in range(stats_all.shape[0]):
+        # add the CI
+        TN = stats_all[i,0]
+        FP = stats_all[i,1]
+        FN = stats_all[i,2]
+        TP = stats_all[i,3]
+
+        ci[i,4,:] = binomial_proportion_ci(TP, TP+FN, alpha = 0.05)
+        ci[i,5,:] = binomial_proportion_ci(TN, TN+FP, alpha = 0.05)
+        ci[i,6,:] = binomial_proportion_ci(TP, TP+FP, alpha = 0.05)
+        ci[i,7,:] = binomial_proportion_ci(TN, TN+FN, alpha = 0.05)
 
     f.write('Subgroup')
     for n, stats_name in enumerate(stats_names):
@@ -179,6 +205,8 @@ def print_stats_to_file(filename, yhat_names, stats_all):
         for n, stats_name in enumerate(stats_names):
             if n < 5: # use integer format for the tp/fp
                 f.write('\t%10.0f' % stats_all[i,n])
+            elif n < 8: # print sensitivity, specificity, etc with CI
+                f.write('\t%4.2f [{:2.2f}, {:2.2f}]' % stats_all[i,n], ci[i,n,0], ci[i,n,1])
             else: # use decimal format for the sensitivity, specificity, etc
                 f.write('\t%10.2f' % stats_all[i,n])
 
@@ -407,6 +435,80 @@ def print_auc_table_to_file(preds, target, preds_header=None, filename=None):
         f.write('\n')
 
     f.close()
+
+
+def binomial_proportion(N, p, x1, x2):
+    p = float(p)
+    q = p/(1-p)
+    k = 0.0
+    v = 1.0
+    s = 0.0
+    tot = 0.0
+
+    while(k<=N):
+            tot += v
+            if(k >= x1 and k <= x2):
+                    s += v
+            if(tot > 10**30):
+                    s = s/10**30
+                    tot = tot/10**30
+                    v = v/10**30
+            k += 1
+            v = v*q*(N+1-k)/k
+    return s/tot
+
+# confidence intervals
+def binomial_proportion_ci(numerator, denominator, alpha = 0.05):
+    '''
+    Calculate the confidence interval for a proportion of binomial counts.
+    Confidence intervals calculated are symmetric.
+
+    Sourced from @Kurtis from
+    http://stackoverflow.com/questions/13059011/is-there-any-python-function-library-for-calculate-binomial-confidence-intervals
+    ... which was based upon: http://statpages.info/confint.html
+    ... which was further based upon:
+        CJ Clopper and ES Pearson, "The use of confidence or fiducial limits
+        illustrated in the case of the binomial." Biometrika. 26:404-413, 1934.
+
+        F Garwood, "Fiducial Limits for the Poisson Distribution" Biometrica.
+        28:437-442, 1936.
+    '''
+    numerator = float(numerator)
+    denominator = float(denominator)
+    p = alpha/2
+
+    ratio = numerator/denominator
+    if numerator==0:
+            interval_low = 0.0
+    else:
+            v = ratio/2
+            vsL = 0
+            vsH = ratio
+
+            while((vsH-vsL) > 10**-5):
+                    if(binomial_proportion(denominator, v, numerator, denominator) > p):
+                            vsH = v
+                            v = (vsL+v)/2
+                    else:
+                            vsL = v
+                            v = (v+vsH)/2
+            interval_low = v
+
+    if numerator==denominator:
+            interval_high = 1.0
+    else:
+            v = (1+ratio)/2
+            vsL = ratio
+            vsH = 1
+            while((vsH-vsL) > 10**-5):
+                    if(binomial_proportion(denominator, v, 0, numerator) < p):
+                            vsH = v
+                            v = (vsL+v)/2
+                    else:
+                            vsL = v
+                            v = (v+vsH)/2
+            interval_high = v
+    return (interval_low, interval_high)
 
 def get_physiologic_data(con):
     query = 'SET search_path to ' + schema_name + ';' + \
