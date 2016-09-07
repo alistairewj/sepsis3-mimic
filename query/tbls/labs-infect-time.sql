@@ -2,8 +2,8 @@
 
 -- Have already confirmed that the unit of measurement is always the same: null or the correct unit
 
-drop table IF EXISTS labs_si CASCADE;
-create table labs_si as
+drop MATERIALIZED VIEW IF EXISTS labs_si CASCADE;
+create MATERIALIZED VIEW labs_si as
 select
   pvt.icustay_id
 

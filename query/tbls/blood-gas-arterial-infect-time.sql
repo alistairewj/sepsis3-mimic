@@ -1,6 +1,5 @@
-DROP table IF EXISTS bloodgasarterial_si CASCADE;
-
-CREATE table bloodgasarterial_si AS
+DROP MATERIALIZED VIEW IF EXISTS bloodgasarterial_si CASCADE;
+CREATE MATERIALIZED VIEW bloodgasarterial_si AS
 with stg_spo2 as
 (
   select ICUSTAY_ID, CHARTTIME

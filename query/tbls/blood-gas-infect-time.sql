@@ -2,12 +2,12 @@
 
 -- The aim of this query is to pivot entries related to blood gases and
 -- chemistry values which were found in LABEVENTS
-drop table IF EXISTS bloodgas_si CASCADE;
+drop MATERIALIZED VIEW IF EXISTS bloodgas_si CASCADE;
 
 -- things to check:
 --  when a mixed venous/arterial blood sample are taken at the same time, is the store time different?
 
-create table bloodgas_si as
+create MATERIALIZED VIEW bloodgas_si as
 select pvt.ICUSTAY_ID, pvt.CHARTTIME
 
 , max(case when label = 'SPECIMEN' then value else null end) as SPECIMEN

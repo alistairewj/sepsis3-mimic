@@ -1,8 +1,8 @@
 -- This query pivots the vital signs for the patient's stay
 -- Vital signs include heart rate, blood pressure, respiration rate, and temperature
 
-drop table IF EXISTS vitals_si;
-create table vitals_si as
+drop MATERIALIZED VIEW IF EXISTS vitals_si;
+create MATERIALIZED VIEW vitals_si as
 
 SELECT pvt.icustay_id
 

@@ -21,8 +21,8 @@
 --    This was ascertained either from interviewing the physician who ordered the sedation,
 --    or by reviewing the patient's medical record.
 
-drop table IF EXISTS gcs_si CASCADE;
-create table gcs_si as
+drop MATERIALIZED VIEW IF EXISTS gcs_si CASCADE;
+create MATERIALIZED VIEW gcs_si as
 with base as
 (
   SELECT pvt.ICUSTAY_ID

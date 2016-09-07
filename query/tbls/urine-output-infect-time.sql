@@ -1,5 +1,5 @@
-drop table IF EXISTS uo_si CASCADE;
-create table uo_si as
+drop MATERIALIZED VIEW IF EXISTS uo_si CASCADE;
+create MATERIALIZED VIEW uo_si as
 select
   -- patient identifiers
   ie.icustay_id
