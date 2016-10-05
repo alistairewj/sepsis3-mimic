@@ -6,6 +6,9 @@ import psycopg2
 import pandas as pd
 import numpy as np
 
+# we use ordered dictionaries to ensure consistent output order
+import collections
+
 import roc_utils as ru
 
 from statsmodels.formula.api import logit
@@ -216,23 +219,24 @@ def print_stats_to_file(filename, yhat_names, stats_all):
 
 def print_demographics(df, idx=None):
     # create a dictionary which maps each variable to a data type
-    all_vars = {'N':'N',
-    'age':'continuous',
-    'gender':'gender', # handled specially
-    'bmi':'continuous',
-    'hospital_expire_flag':'binary',
-    'thirtyday_expire_flag':'binary',
-    'icu_los':'median',
-    'hosp_los':'median',
-    'vent':'binary',
-    'race_black':'binary',
-    'race_other':'binary',
-    'elixhauser_hospital':'continuous',
-    'sirs':'median',
-    'sofa':'median',
-    'qsofa':'median',
-    'mlods':'median',
-    'lactate_max':'continuous'}
+    all_vars = collections.OrderedDict((
+    ('N', 'N'),
+    ('age', 'continuous'),
+    ('gender', 'gender'), # handled specially
+    ('bmi', 'continuous'),
+    ('hospital_expire_flag', 'binary'),
+    ('thirtyday_expire_flag', 'binary'),
+    ('icu_los', 'median'),
+    ('hosp_los', 'median'),
+    ('vent', 'binary'),
+    ('race_black', 'binary'),
+    ('race_other', 'binary'),
+    ('elixhauser_hospital', 'continuous'),
+    ('sirs', 'median'),
+    ('sofa', 'median'),
+    ('qsofa', 'median'),
+    ('mlods', 'median'),
+    ('lactate_max', 'continuous')))
 
     if idx is None:
         # print demographics for entire dataset
