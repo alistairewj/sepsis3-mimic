@@ -216,7 +216,8 @@ def print_stats_to_file(filename, yhat_names, stats_all):
 
 def print_demographics(df, idx=None):
     # create a dictionary which maps each variable to a data type
-    all_vars = {'age':'continuous',
+    all_vars = {'N':'N',
+    'age':'continuous',
     'gender':'gender', # handled specially
     'bmi':'continuous',
     'hospital_expire_flag':'binary',
@@ -236,7 +237,9 @@ def print_demographics(df, idx=None):
     if idx is None:
         # print demographics for entire dataset
         for i, curr_var in enumerate(all_vars):
-            if curr_var in df.columns:
+            if all_vars[curr_var] == 'N': # print number of patients
+                print('{:20s}\t{:4g}'.format(curr_var, df.shape[0]))
+            elif curr_var in df.columns:
                 if all_vars[curr_var] == 'continuous': # report mean +- STD
                     print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
                 elif all_vars[curr_var] == 'gender': # convert from M/F
@@ -264,7 +267,12 @@ def print_demographics(df, idx=None):
         # print demographics split into two groups
         # also print p-values testing between the two groups
         for i, curr_var in enumerate(all_vars):
-            if curr_var in df.columns:
+            if all_vars[curr_var] == 'N': # print number of patients
+                print('{:20s}\t{:4g}{:5s}\t{:4g}{:5s}\t{:5s}'.format(curr_var,
+                np.sum(~idx), '',
+                np.sum(idx), '',
+                ''))
+            elif curr_var in df.columns:
                 if all_vars[curr_var] == 'continuous': # report mean +- STD
                     tbl = np.array([ [df[~idx][curr_var].mean(), df[idx][curr_var].mean()],
                     [df.loc[~idx,curr_var].std(), df.loc[idx,curr_var].std()]])
@@ -281,11 +289,6 @@ def print_demographics(df, idx=None):
                     print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
                     tbl[0,0], tbl[1,0],
                     tbl[0,1], tbl[1,1],
-                    pvalue))
-
-                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
-                    df[~idx][curr_var].mean(), df.loc[~idx,curr_var].std(),
-                    df[idx][curr_var].mean(), df.loc[idx,curr_var].std(),
                     pvalue))
 
                 elif all_vars[curr_var] in ('gender','binary'): # convert from M/F
