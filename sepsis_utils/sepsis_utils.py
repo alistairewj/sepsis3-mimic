@@ -400,7 +400,7 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.2f}'.format(pvalue)
 
-                    print('{:20s}\t{:4g} ({:2.2f}%)%\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + '> 2',
+                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + '> 2',
                     np.sum( df[~idx][curr_var] >= 2 ),
                     100.0*np.mean(df[~idx][curr_var] >= 2),
                     np.sum( df[idx][curr_var] >= 2 ),
