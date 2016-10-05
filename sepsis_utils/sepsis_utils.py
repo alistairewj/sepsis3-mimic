@@ -155,7 +155,7 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
 
     # print the names of the predictions, if they were provided
     print('') # newline
-    print('{:10s}'.format(''),end='') # spacing
+    print('{:5s}'.format(''),end='') # spacing
     if yhat_names is not None:
         for i, yhat_name in enumerate(yhat_names):
             print('\t{:20s}'.format(yhat_name), end='')
@@ -163,7 +163,7 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
 
     # print the stats calculated
     for n, stats_name in enumerate(stats_names):
-        print('{:10s}'.format(stats_name), end='')
+        print('{:5s}'.format(stats_name), end='')
         for i, yhat_name in enumerate(yhat_names):
             if n < 4: # use integer format for the tp/fp
                 print('\t{:5.0f} {:10s}'.format(stats_all[i,n], ''), end='')
