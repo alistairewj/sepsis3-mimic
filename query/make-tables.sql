@@ -28,7 +28,7 @@ BEGIN;
 \i ../mimic-code/etc/firstday/blood-gas-first-day.sql
 \i ../mimic-code/etc/firstday/blood-gas-first-day-arterial.sql
 
-\i tbls/ventilation-durations.sql
+\i ../mimic-code/etc/ventilation-durations.sql
 \i ../mimic-code/etc/echo-data.sql
 \i ../mimic-code/etc/firstday/weight-first-day.sql
 \i ../mimic-code/etc/firstday/height-first-day.sql
