@@ -266,6 +266,9 @@ def print_demographics(df, idx=None):
         for i, curr_var in enumerate(all_vars):
             if curr_var in df.columns:
                 if all_vars[curr_var] == 'continuous': # report mean +- STD
+                    tbl = np.array([ [df[~idx][curr_var].mean(), df[idx][curr_var].mean()],
+                    [df.loc[~idx,curr_var].std(), df.loc[idx,curr_var].std()]])
+
                     stat, pvalue = scipy.stats.ttest_ind(df[~idx][curr_var], df[idx][curr_var],
                     equal_var=False, nan_policy='omit')
 
@@ -276,14 +279,24 @@ def print_demographics(df, idx=None):
                         pvalue = '{:0.2f}'.format(pvalue)
 
                     print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
+                    tbl[0,0], tbl[1,0],
+                    tbl[0,1], tbl[1,1],
+                    pvalue))
+
+                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
                     df[~idx][curr_var].mean(), df.loc[~idx,curr_var].std(),
                     df[idx][curr_var].mean(), df.loc[idx,curr_var].std(),
                     pvalue))
 
-                elif all_vars[curr_var] == 'gender': # convert from M/F
+                elif all_vars[curr_var] in ('gender','binary'): # convert from M/F
                     # build the contingency table
-                    tbl = np.array([ [np.sum(df[~idx][curr_var].values=='M'), np.sum(df[idx][curr_var].values=='M')],
-                    [np.sum(df[~idx][curr_var].values!='M'), np.sum(df[idx][curr_var].values!='M')] ])
+                    if all_vars[curr_var] == 'gender':
+                        tbl = np.array([ [np.sum(df[~idx][curr_var].values=='M'), np.sum(df[idx][curr_var].values=='M')],
+                        [np.sum(df[~idx][curr_var].values!='M'), np.sum(df[idx][curr_var].values!='M')] ])
+                    else:
+                        tbl = np.array([ [np.sum(df[~idx][curr_var].values), np.sum(df[idx][curr_var].values)],
+                        [np.sum(1 - df[~idx][curr_var].values), np.sum(1 - df[idx][curr_var].values)] ])
+
 
                     # get the p-value
                     chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
@@ -294,34 +307,13 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.2f}'.format(pvalue)
 
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
-                    np.sum(df[~idx][curr_var].values=='M'),
-                    100.0*np.sum(df[~idx][curr_var].values=='M').astype(float) / df.shape[0],
-                    np.sum(df[idx][curr_var].values=='M'),
-                    100.0*np.sum(df[idx][curr_var].values=='M').astype(float) / df.shape[0],
-                    pvalue))
-
-                elif all_vars[curr_var] == 'binary':
-                    # build the contingency table
-                    tbl = np.array([ [np.sum(df[~idx][curr_var].values), np.sum(df[idx][curr_var].values)],
-                    [np.sum(1 - df[~idx][curr_var].values), np.sum(1 - df[idx][curr_var].values)] ])
-
-                    # get the p-value
-                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
-
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
-                    else:
-                        pvalue = '{:0.2f}'.format(pvalue)
-
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
-                    df[~idx][curr_var].sum(),
-                    100.0*(df[~idx][curr_var].mean()).astype(float),
-                    df[idx][curr_var].sum(),
-                    100.0*(df[idx][curr_var].mean()).astype(float),
-                    pvalue))
                     # binary, report percentage
+                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
+                    tbl[0,0], 100.0*tbl[0,0].astype(float) / (tbl[0,0]+tbl[1,0]),
+                    tbl[0,1],
+                    100.0*tbl[0,1].astype(float) / (tbl[0,1]+tbl[1,1]),
+                    pvalue))
+
                 elif all_vars[curr_var] == 'median': # report median +- STD
                     stat, pvalue = scipy.stats.mannwhitneyu(df[~idx][curr_var],
                     df[idx][curr_var],
