@@ -256,7 +256,7 @@ def print_demographics(df, idx=None):
                 # report median [25th percentile, 75th percentile]
                 elif all_vars[curr_var] == 'median':
                     print('{:20s}\t{:2.2f} [{:2.2f}, {:2.2f}]'.format(curr_var, df[curr_var].median(),
-                    np.percentile(df[curr_var].values,25), np.percentile(df[curr_var].values,75)))
+                    np.percentile(df[curr_var].values,25,interpolation='midpoint'), np.percentile(df[curr_var].values,75,interpolation='midpoint')))
                 elif all_vars[curr_var] == 'measured':
                     print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
 
@@ -287,11 +287,11 @@ def print_demographics(df, idx=None):
                     stat, pvalue = scipy.stats.ttest_ind(df[~idx][curr_var], df[idx][curr_var],
                     equal_var=False, nan_policy='omit')
 
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
                     else:
-                        pvalue = '{:0.2f}'.format(pvalue)
+                        pvalue = '{:0.3f}'.format(pvalue)
 
                     print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
                     tbl[0,0], tbl[1,0],
@@ -311,11 +311,11 @@ def print_demographics(df, idx=None):
                     # get the p-value
                     chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
 
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
                     else:
-                        pvalue = '{:0.2f}'.format(pvalue)
+                        pvalue = '{:0.3f}'.format(pvalue)
 
                     # binary, report percentage
                     print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
@@ -329,15 +329,15 @@ def print_demographics(df, idx=None):
                     df[idx][curr_var],
                     use_continuity=True, alternative='two-sided')
 
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
                     else:
-                        pvalue = '{:0.2f}'.format(pvalue)
+                        pvalue = '{:0.3f}'.format(pvalue)
 
                     print('{:20s}\t{:2.2f} [{:2.2f}, {:2.2f}]\t{:2.2f} [{:2.2f}, {:2.2f}]\t{:5s}'.format(curr_var,
-                    df[~idx][curr_var].median(), np.percentile(df[~idx][curr_var].values,25), np.percentile(df[~idx][curr_var].values,75),
-                    df[idx][curr_var].median(), np.percentile(df[idx][curr_var].values,25), np.percentile(df[idx][curr_var].values,75),
+                    df[~idx][curr_var].median(), np.percentile(df[~idx][curr_var].values,25,interpolation='midpoint'), np.percentile(df[~idx][curr_var].values,75,interpolation='midpoint'),
+                    df[idx][curr_var].median(), np.percentile(df[idx][curr_var].values,25,interpolation='midpoint'), np.percentile(df[idx][curr_var].values,75,interpolation='midpoint'),
                     pvalue))
 
                 elif all_vars[curr_var] == 'measured':
@@ -348,11 +348,11 @@ def print_demographics(df, idx=None):
                     # get the p-value
                     chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
 
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
                     else:
-                        pvalue = '{:0.2f}'.format(pvalue)
+                        pvalue = '{:0.3f}'.format(pvalue)
 
                     print('{:20s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var,
                     np.sum(df[~idx][curr_var].isnull()),
@@ -375,11 +375,11 @@ def print_demographics(df, idx=None):
                     # get the p-value
                     chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
 
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
                     else:
-                        pvalue = '{:0.2f}'.format(pvalue)
+                        pvalue = '{:0.3f}'.format(pvalue)
 
                     print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + 'measured',
                     np.sum(df[~idx][curr_var].isnull()),
@@ -397,11 +397,11 @@ def print_demographics(df, idx=None):
                     # get the p-value
                     chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl )
 
-                    # print out < 0.01 if it's a very low p-value
-                    if pvalue < 0.01:
-                        pvalue = '< 0.01'
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
                     else:
-                        pvalue = '{:0.2f}'.format(pvalue)
+                        pvalue = '{:0.3f}'.format(pvalue)
 
                     print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + '> 2',
                     np.sum( df[~idx][curr_var] >= 2 ),
