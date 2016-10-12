@@ -221,7 +221,7 @@ def print_demographics(df, idx=None):
     # create a dictionary which maps each variable to a data type
     all_vars = collections.OrderedDict((
     ('N', 'N'),
-    ('age', 'continuous'),
+    ('age', 'median'),
     ('gender', 'gender'), # handled specially
     ('bmi', 'continuous'),
     ('hospital_expire_flag', 'binary'),
@@ -249,15 +249,16 @@ def print_demographics(df, idx=None):
                 elif all_vars[curr_var] == 'gender': # convert from M/F
                     print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, np.sum(df[curr_var].values=='M'),
                     100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
+                # binary, report percentage
                 elif all_vars[curr_var] == 'binary':
                     print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, df[curr_var].sum(),
                     100.0*(df[curr_var].mean()).astype(float)))
-                    # binary, report percentage
                 elif all_vars[curr_var] == 'median': # report median +- STD
                     print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
                 elif all_vars[curr_var] == 'measured':
                     print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
 
+                # additional lactate measurements output with lactate_max
                 if curr_var == 'lactate_max':
                     # also print measured
                     print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var.replace('_max',' ') + 'measured',
@@ -358,7 +359,7 @@ def print_demographics(df, idx=None):
                     100.0*np.mean(df[idx][curr_var].isnull()),
                     pvalue))
 
-
+                # additional lactate measurements output with lactate_max
                 if curr_var == 'lactate_max':
                     # for lactate, we print two additional rows:
                     # 1) was lactate ever measured?
