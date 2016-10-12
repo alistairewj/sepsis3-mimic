@@ -253,8 +253,10 @@ def print_demographics(df, idx=None):
                 elif all_vars[curr_var] == 'binary':
                     print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, df[curr_var].sum(),
                     100.0*(df[curr_var].mean()).astype(float)))
-                elif all_vars[curr_var] == 'median': # report median +- STD
-                    print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].median(), df[curr_var].std()))
+                # report median [25th percentile, 75th percentile]
+                elif all_vars[curr_var] == 'median':
+                    print('{:20s}\t{:2.2f} [{:2.2f}, {:2.2f}]'.format(curr_var, df[curr_var].median(),
+                    np.percentile(df[curr_var].values,25), np.percentile(df[curr_var].values,75)))
                 elif all_vars[curr_var] == 'measured':
                     print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
 
@@ -322,7 +324,7 @@ def print_demographics(df, idx=None):
                     100.0*tbl[0,1].astype(float) / (tbl[0,1]+tbl[1,1]),
                     pvalue))
 
-                elif all_vars[curr_var] == 'median': # report median +- STD
+                elif all_vars[curr_var] == 'median':
                     stat, pvalue = scipy.stats.mannwhitneyu(df[~idx][curr_var],
                     df[idx][curr_var],
                     use_continuity=True, alternative='two-sided')
@@ -333,9 +335,9 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.2f}'.format(pvalue)
 
-                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
-                    df[~idx][curr_var].median(), df[~idx][curr_var].std(),
-                    df[idx][curr_var].median(), df[idx][curr_var].std(),
+                    print('{:20s}\t{:2.2f} [{:2.2f}, {:2.2f}]\t{:2.2f} [{:2.2f}, {:2.2f}]\t{:5s}'.format(curr_var,
+                    df[~idx][curr_var].median(), np.percentile(df[~idx][curr_var].values,25), np.percentile(df[~idx][curr_var].values,75),
+                    df[idx][curr_var].median(), np.percentile(df[idx][curr_var].values,25), np.percentile(df[idx][curr_var].values,75),
                     pvalue))
 
                 elif all_vars[curr_var] == 'measured':
