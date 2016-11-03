@@ -229,8 +229,7 @@ def print_demographics(df, idx=None):
     ('icu_los', 'median'),
     ('hosp_los', 'median'),
     ('vent', 'binary'),
-    ('race_black', 'binary'),
-    ('race_other', 'binary'),
+    ('race', 'race'),
     ('elixhauser_hospital', 'median'),
     ('sirs', 'median'),
     ('sofa', 'median'),
@@ -259,6 +258,22 @@ def print_demographics(df, idx=None):
                     np.percentile(df[curr_var].values,25,interpolation='midpoint'), np.percentile(df[curr_var].values,75,interpolation='midpoint')))
                 elif all_vars[curr_var] == 'measured':
                     print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
+                elif all_vars[curr_var] == 'race':
+                    # special case: print each race individually
+                    # race_black, race_other
+                    print('{:20s}\t'.format('Race'))
+
+                    # each component
+                    curr_var_tmp = 'White'
+                    N_tmp = df.shape[0]-(df['race_black'].sum()+df['race_other'].sum())
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var_tmp, N_tmp,
+                    100.0*(N_tmp.astype(float))/df.shape[0]))
+                    curr_var_tmp = 'Black'
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var_tmp, df['race_black'].sum(),
+                    100.0*(df['race_black'].mean()).astype(float)))
+                    curr_var_tmp = 'Other'
+                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var_tmp, df['race_other'].sum(),
+                    100.0*(df['race_other'].mean()).astype(float)))
 
                 # additional lactate measurements output with lactate_max
                 if curr_var == 'lactate_max':
@@ -360,6 +375,47 @@ def print_demographics(df, idx=None):
                     np.sum(df[idx][curr_var].isnull()),
                     100.0*np.mean(df[idx][curr_var].isnull()),
                     pvalue))
+
+                elif all_vars[curr_var] == 'race':
+                    # special case: evaluate each race in chi2
+                    # race_black, race_other
+
+                    # create a contingency table with three rows
+
+                    # method 1) use crosstab
+                    #df['race'] = 'white'
+                    #df.loc[df['race_black']==1,'race'] = 'black'
+                    #df.loc[df['race_other']==1,'race'] = 'other'
+                    #tbl = pd.crosstab(df.race, df.angus, margins = True)
+                    # # Extract table without totals
+                    #tbl = tbl.ix[0:-1,0:-1]
+
+                    # method 2) do it manually!
+                    tbl = np.array([ [np.sum( ~((df[~idx]['race_black'].values) | (df[~idx]['race_other'].values))),
+                    np.sum(~((df[idx]['race_black'].values) | (df[idx]['race_other'].values)))],
+                    [np.sum(df[~idx]['race_black'].values), np.sum(df[idx]['race_black'].values)],
+                    [np.sum(df[~idx]['race_other'].values), np.sum(df[idx]['race_other'].values)] ])
+
+
+                    # get the p-value
+                    chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl, correction=False )
+
+                    # print out < 0.001 if it's a very low p-value
+                    if pvalue < 0.001:
+                        pvalue = '< 0.001'
+                    else:
+                        pvalue = '{:0.3f}'.format(pvalue)
+
+                    # first print out we are comparing races (with p-value)
+                    print('{:20s}\t{:10s}\t{:10s}\t{:5s}'.format(curr_var,'','',pvalue))
+                    # next print out individual race #s (no p-value)
+                    curr_var_vec = ['White','Black','Other']
+                    for r in range(3):
+                        print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format('  ' + curr_var_vec[r],
+                        tbl[r,0], 100.0*tbl[r,0].astype(float) / np.sum(tbl[:,0]),
+                        tbl[r,1],
+                        100.0*tbl[r,1].astype(float) / np.sum(tbl[:,1]),
+                        '')) # no individual p-value
 
                 # additional lactate measurements output with lactate_max
                 if curr_var == 'lactate_max':
