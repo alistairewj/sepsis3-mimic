@@ -88,7 +88,7 @@ def print_cm(y, yhat, header1='y', header2='yhat'):
     print('   \t{:2.2f}\t{:2.2f}\tAcc={:2.2f}'.format(100.0*TN/(TN+FP), 100.0*TP/(TP+FN), 100.0*(TP+TN)/N))
     print('   \tSpec\tSens')
 
-def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
+def get_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
     # for a given set of predictions, prints a table of the performances
     # yhat_all should be an 1xM list containing M numpy arrays of length N
     # y_all is either an Nx1 numpy array (if evaluating against the same outcome)
@@ -99,7 +99,7 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
         # we create a 1xM list the same size as yhat_all
         y_all = [y_all for i in range(len(yhat_all))]
 
-    stats_names = [ 'TN','FP','FN','TP','Sens','Spec','PPV','NPV','F1','DOR']
+    stats_names = [ 'TN','FP','FN','TP','Sens','Spec','PPV','NPV','F1','NTP','NFP']
     stats_all = np.zeros( [len(yhat_all), len(stats_names)] )
     ci = np.zeros( [len(yhat_all), len(stats_names), 2] )
 
@@ -127,15 +127,15 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
         stats_all[i,6] = 100.0*TP/(TP+FP) # PPV
         stats_all[i,7] = 100.0*TN/(TN+FN) # NPV
 
-        # add the CI
-        ci[i,4,:] = binomial_proportion_ci(TP, TP+FN, alpha = 0.05)
-        ci[i,5,:] = binomial_proportion_ci(TN, TN+FP, alpha = 0.05)
-        ci[i,6,:] = binomial_proportion_ci(TP, TP+FP, alpha = 0.05)
-        ci[i,7,:] = binomial_proportion_ci(TN, TN+FN, alpha = 0.05)
-
         # F1, the harmonic mean of PPV/Sensitivity
         stats_all[i,8] = 2.0*(stats_all[i,6] * stats_all[i,4]) / (stats_all[i,6] + stats_all[i,4])
-        stats_all[i,9] = (TP/FP)/(FN/TN) # diagnostic odds ratio
+
+        # NTP/100: 100 patients * % outcome * (ppv)
+        stats_all[i,9] = 100.0 * (TP+FP)/(TP+FP+TN+FN) * (stats_all[i,6]/100.0)
+        # NFP/100: 100 patients * % outcome * (1-ppv)
+        stats_all[i,10] = 100.0 * (TP+FP)/(TP+FP+TN+FN) * (1-stats_all[i,6]/100.0)
+
+        #stats_all[i,11] = (TP/FP)/(FN/TN) # diagnostic odds ratio
 
         # now push the stats to the final stats vector
         stats_all[i,0] = TN
@@ -143,6 +143,26 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
         stats_all[i,2] = FN
         stats_all[i,3] = TP
 
+    return stats_all
+
+
+def print_op_stats(stats_all, yhat_names=None, header=None, idx=None):
+    stats_names = [ 'TN','FP','FN','TP','Sens','Spec','PPV','NPV','F1','NTP','NFP']
+    # calculate confidence intervals
+    P = stats_all.shape[0]
+    ci = np.zeros( [P, len(stats_names), 2] )
+
+    for i in range(P):
+        TN = stats_all[i,0]
+        FP = stats_all[i,1]
+        FN = stats_all[i,2]
+        TP = stats_all[i,3]
+
+        # add the CI
+        ci[i,4,:] = binomial_proportion_ci(TP, TP+FN, alpha = 0.05)
+        ci[i,5,:] = binomial_proportion_ci(TN, TN+FP, alpha = 0.05)
+        ci[i,6,:] = binomial_proportion_ci(TP, TP+FP, alpha = 0.05)
+        ci[i,7,:] = binomial_proportion_ci(TN, TN+FN, alpha = 0.05)
 
     print('Metric')
     if header is not None:
@@ -175,12 +195,12 @@ def print_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
 
         print('') # newline
 
-    return stats_all
+    return None
 
 def print_stats_to_file(filename, yhat_names, stats_all):
     # print the table to a file for convenient viewing
     f = open(filename,'w')
-    stats_names = [ 'TN','FP','FN','TP','N','Sens','Spec','PPV','NPV','F1','DOR']
+    stats_names = [ 'TN','FP','FN','TP','N','Sens','Spec','PPV','NPV','F1','NTP','NFP']
 
     # derive CIs
     ci = np.zeros( [stats_all.shape[0], stats_all.shape[1], 2] )
