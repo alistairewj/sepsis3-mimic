@@ -532,6 +532,26 @@ def calc_predictions(df, preds_header, target_header, model=None):
         print('Unsure what {} means...'.format(model))
         return None
 
+
+def cronbach_alpha(X):
+    # given a set of with K components (K rows) of N observations (N columns)
+    # we output the agreement among the components according to Cronbach's alpha
+    X = np.asarray(X)
+    return X.shape[0] / (X.shape[0] - 1.0) * (1.0 - (X.var(axis=1, ddof=1).sum() / X.sum(axis=0).var(ddof=1)))
+
+def cronbach_alpha_bootstrap(X,B=1000):
+    # bootstrap cronbach - return value and confidence intervals (percentile method)
+    alpha = np.zeros(B,dtype=float)
+    N = X.shape[1]
+
+    for b in range(B):
+        idx = np.random.randint(0, high=N, size=N)
+        alpha[b] = cronbach_alpha(X[:,idx])
+
+    ci = np.percentile(alpha, [5,95])
+    alpha = cronbach_alpha(X)
+    return alpha, ci
+
 def print_auc_table(preds, target, preds_header):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
     y = target == 1
@@ -554,19 +574,17 @@ def print_auc_table(preds, target, preds_header):
             elif p==q:
                 auc, ci = ru.calc_auc(preds[ppred], y, with_ci=True, alpha=0.05)
                 print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
+            elif qpred not in preds:
+                print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
             elif q>p:
-                #TODO: cronenback alpha
-                print('{:20s}'.format(''),end='\t')
-
+                alpha, ci = cronbach_alpha_bootstrap(np.row_stack([preds[ppred],preds[qpred]]),B=2000)
+                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(alpha, ci[0], ci[1]), end='\t')
             else:
-                if qpred not in preds:
-                    print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
+                pval, ci = ru.test_auroc(preds[ppred], preds[qpred], y)
+                if pval > 0.001:
+                    print('{:0.3f}{:15s}'.format(pval, ''), end='\t')
                 else:
-                    pval, ci = ru.test_auroc(preds[ppred], preds[qpred], y)
-                    if pval > 0.001:
-                        print('{:0.3f}{:15s}'.format(pval, ''), end='\t')
-                    else:
-                        print('< 0.001{:15s}'.format(''),end='\t')
+                    print('< 0.001{:15s}'.format(''),end='\t')
 
 
         print('')
