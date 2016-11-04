@@ -497,7 +497,25 @@ def calc_predictions(df, preds_header, target_header, model=None):
         for x in preds_header:
             preds[x] = df[x].values
         return preds
-    elif model == 'baseline':
+    elif model == 'mfp_baseline':
+        # evaluate the MFP model without severity of illness
+        # call a subprocess to run the R script to generate fractional polynomial predictions
+        import subprocess
+        # loop through each severity score, build an MFP model for each
+        fn_in = "sepsis3-design-matrix.csv"
+        fn_out = "sepsis3-preds.csv"
+
+        # by excluding the 4th argument, we train a baseline MFP model
+        rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, target_header]
+        err = subprocess.call(' '.join(rcmd), shell=True)
+        if err!=0:
+            print('RScript returned error status {}.'.format(err))
+        else:
+            # load in the predictions
+            pred = pd.read_csv(fn_out, sep=',', header=0)
+            pred = pred.values[:,0]
+        return pred
+    elif model == 'logreg':
         P = len(preds_header)
         y = df[target_header].values == 1
         preds = dict()
