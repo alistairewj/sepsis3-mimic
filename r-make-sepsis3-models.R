@@ -10,18 +10,11 @@ if (length(args)==0) {
 sep3 <- read.table(args[1], header=TRUE, sep=",")
 
 # base formula for the model
-formula = "~ fp(age) + fp(elixhauser_hospital) + is_male + race_black + race_other"
+formula = "hospital_expire_flag ~ fp(age) + fp(elixhauser_hospital) + is_male + race_black + race_other"
 
-# add in the target header, if available
+# if input - use the formula provided
 if (length(args)==3) {
-# we also specify the target
-formula = paste(args[3], formula, sep=" ")
-} else {
-formula = paste('hospital_expire_flag', formula, sep=" ")
-}
-# add in additional covariate (4th argument)
-if (length(args)==4) {
-formula = paste(formula, args[4], sep=" + ")
+formula = args[3]
 }
 
 # build the model
