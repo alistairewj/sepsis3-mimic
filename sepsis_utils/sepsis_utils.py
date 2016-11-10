@@ -543,7 +543,7 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
         preds = dict()
         for p in preds_header:
              # note we add covariate 'p' to the formula
-            rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, '"' + formula + " + " + p + '"']
+            rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, '"' + formula + " + fp(" + p + ')"']
             err = subprocess.call(' '.join(rcmd), shell=True)
             if err!=0:
                 print(' '.join(rcmd))
