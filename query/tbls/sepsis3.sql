@@ -123,11 +123,18 @@ select
       else 0 end as sepsis3
     , ml.mlods as mlods
 
-    -- admission qSOFA/SIRS:
-    , qsadm.qsofa as qsofa -- this includes vent/vaso flags
-    , qsadm.qsofa_no_rx as qsofa_no_rx
+    -- admission SIRS
     , siadm.sirs as sirs
 
+    -- admission qSOFA
+    -- this includes vent/vaso flags
+    , qsadm.qsofa as qsofa
+    -- subcomponents for qSOFA
+    , qsadm.SysBP_score as qsofa_sysbp_score
+    , qsadm.GCS_score as qsofa_gcs_score
+    , qsadm.RespRate_score as qsofa_resprate_score
+
+    , qsadm.qsofa_no_rx as qsofa_no_rx
     , firststay.rn as icustay_num
     , firststay.adult
     , case when vent.starttime is not null then 1 else 0 end as vent
