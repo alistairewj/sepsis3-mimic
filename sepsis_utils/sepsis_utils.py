@@ -5,6 +5,7 @@ import os
 import psycopg2
 import pandas as pd
 import numpy as np
+import subprocess
 
 # we use ordered dictionaries to ensure consistent output order
 import collections
@@ -492,7 +493,7 @@ def print_demographics(df, idx=None):
 
 def calc_predictions(df, preds_header, target_header, model=None, print_summary=False):
     # default formula: evaluate the MFP model without severity of illness
-    formula = target_header + " ~ fp(age) + fp(elixhauser_hospital) + is_male + race_black + race_other"
+    formula = target_header + " ~ age + elixhauser_hospital + is_male + race_black + race_other"
     if model is None:
         preds = dict()
         for x in preds_header:
@@ -501,7 +502,7 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
 
     elif model == 'mfp_baseline':
         # call a subprocess to run the R script to generate fractional polynomial predictions
-        import subprocess
+        formula = formula.replace(" age ", " fp(age) ").replace(" elixhauser_hospital "," fp(elixhauser_hospital) ")
         # loop through each severity score, build an MFP model for each
         fn_in = "sepsis3-design-matrix.csv"
         fn_out = "sepsis3-preds.csv"
@@ -534,7 +535,7 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
 
     elif model == 'mfp':
         # call a subprocess to run the R script to generate fractional polynomial predictions
-        import subprocess
+        formula = formula.replace(" age ", " fp(age) ").replace(" elixhauser_hospital "," fp(elixhauser_hospital) ")
         # loop through each severity score, build an MFP model for each
         fn_in = "sepsis3-design-matrix.csv"
         fn_out = "sepsis3-preds.csv"
@@ -551,7 +552,7 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
                 pred = pd.read_csv(fn_out, sep=',', header=0)
                 preds[p] = pred.values[:,0]
         return preds
-        
+
     else:
         print('Unsure what {} means...'.format(model))
         return None
