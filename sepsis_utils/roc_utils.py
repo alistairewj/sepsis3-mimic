@@ -23,6 +23,8 @@ def calc_auc(pred, target, with_ci=False, alpha=0.05):
         pred = [pred]
         onePred = True
     else:
+        if len(pred[0]) != len(target):
+            print('Input sizes may not match!')
         onePred = False
 
     P = len(pred)
