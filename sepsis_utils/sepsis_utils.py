@@ -508,9 +508,10 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
         fn_out = "sepsis3-preds.csv"
 
         # by excluding the 4th argument, we train a baseline MFP model
-        rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, formula]
+        rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, '"' + formula + '"']
         err = subprocess.call(' '.join(rcmd), shell=True)
         if err!=0:
+            print(' '.join(rcmd))
             print('RScript returned error status {}.'.format(err))
         else:
             # load in the predictions
@@ -543,9 +544,9 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
         for p in preds_header:
              # note we add covariate 'p' to the formula
             rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, '"' + formula + " + " + p + '"']
-            print(' '.join(rcmd))
             err = subprocess.call(' '.join(rcmd), shell=True)
             if err!=0:
+                print(' '.join(rcmd))
                 print('RScript returned error status {}.'.format(err))
             else:
                 # load in the predictions
