@@ -490,15 +490,16 @@ def print_demographics(df, idx=None):
                 print('{:20s}'.format(curr_var))
 
 
-def calc_predictions(df, preds_header, target_header, model=None):
+def calc_predictions(df, preds_header, target_header, model=None, print_summary=False):
+    # default formula: evaluate the MFP model without severity of illness
+    formula = target_header + " ~ fp(age) + fp(elixhauser_hospital) + is_male + race_black + race_other"
     if model is None:
-
         preds = dict()
         for x in preds_header:
             preds[x] = df[x].values
         return preds
+
     elif model == 'mfp_baseline':
-        # evaluate the MFP model without severity of illness
         # call a subprocess to run the R script to generate fractional polynomial predictions
         import subprocess
         # loop through each severity score, build an MFP model for each
@@ -506,29 +507,31 @@ def calc_predictions(df, preds_header, target_header, model=None):
         fn_out = "sepsis3-preds.csv"
 
         # by excluding the 4th argument, we train a baseline MFP model
-        rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, target_header]
+        rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, formula]
         err = subprocess.call(' '.join(rcmd), shell=True)
         if err!=0:
             print('RScript returned error status {}.'.format(err))
         else:
             # load in the predictions
+            # base formula for the model
             pred = pd.read_csv(fn_out, sep=',', header=0)
             pred = pred.values[:,0]
         return pred
+
     elif model == 'logreg':
         P = len(preds_header)
         y = df[target_header].values == 1
         preds = dict()
         for p in range(P):
-            # build the models and get the predictions
-            model = logit(formula=target_header + " ~ age + elixhauser_hospital" +
-            " + race_black + race_other + is_male + " + preds_header[p],
-            data=df).fit(disp=0)
+            # build the models adding each predictor as a covariate
+            model = logit(formula=formula + " + " + preds_header[p],data=df).fit(disp=0)
 
             # create a list, each element containing the predictions
             preds[preds_header[p]] = model.predict()
-
+            if print_summary == True:
+                print(model.summary())
         return preds
+
     elif model == 'mfp':
         # call a subprocess to run the R script to generate fractional polynomial predictions
         import subprocess
@@ -537,7 +540,9 @@ def calc_predictions(df, preds_header, target_header, model=None):
         fn_out = "sepsis3-preds.csv"
         preds = dict()
         for p in preds_header:
-            rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, target_header, p] # note 4th argument is covariate 'p'
+             # note we add covariate 'p' to the formula
+            rcmd = ["Rscript r-make-sepsis3-models.R", fn_in, fn_out, '"' + formula + " + " + p + '"']
+            print(' '.join(rcmd))
             err = subprocess.call(' '.join(rcmd), shell=True)
             if err!=0:
                 print('RScript returned error status {}.'.format(err))
@@ -546,6 +551,7 @@ def calc_predictions(df, preds_header, target_header, model=None):
                 pred = pd.read_csv(fn_out, sep=',', header=0)
                 preds[p] = pred.values[:,0]
         return preds
+        
     else:
         print('Unsure what {} means...'.format(model))
         return None
