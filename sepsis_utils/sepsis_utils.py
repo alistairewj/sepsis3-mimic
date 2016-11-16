@@ -602,9 +602,13 @@ def print_auc_table(preds, target, preds_header, with_alpha=True):
                 print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
             elif qpred not in preds:
                 print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
-            elif (q>p) & with_alpha:
-                alpha, ci = cronbach_alpha_bootstrap(np.row_stack([preds[ppred],preds[qpred]]),B=2000)
-                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(alpha, ci[0], ci[1]), end='\t')
+            elif q>p:
+                if with_alpha == False:
+                    # skip printing cronbach alpha as requested by input
+                    print('{:20s}'.format(''),end='\t')
+                else:
+                    alpha, ci = cronbach_alpha_bootstrap(np.row_stack([preds[ppred],preds[qpred]]),B=2000)
+                    print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(alpha, ci[0], ci[1]), end='\t')
             else:
                 pval, ci = ru.test_auroc(preds[ppred], preds[qpred], y)
                 if pval > 0.001:
