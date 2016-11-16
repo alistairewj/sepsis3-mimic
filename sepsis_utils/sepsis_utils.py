@@ -578,7 +578,7 @@ def cronbach_alpha_bootstrap(X,B=1000):
     alpha = cronbach_alpha(X)
     return alpha, ci
 
-def print_auc_table(preds, target, preds_header):
+def print_auc_table(preds, target, preds_header, with_alpha=True):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
     y = target == 1
     P = len(preds)
@@ -602,7 +602,7 @@ def print_auc_table(preds, target, preds_header):
                 print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(auc, ci[0], ci[1]), end='\t')
             elif qpred not in preds:
                 print('{:20s}'.format(''),end='\t') # skip this as we do not have the prediction
-            elif q>p:
+            elif (q>p) & with_alpha:
                 alpha, ci = cronbach_alpha_bootstrap(np.row_stack([preds[ppred],preds[qpred]]),B=2000)
                 print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(alpha, ci[0], ci[1]), end='\t')
             else:
