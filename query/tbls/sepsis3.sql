@@ -134,7 +134,12 @@ select
     , qsadm.GCS_score as qsofa_gcs_score
     , qsadm.RespRate_score as qsofa_resprate_score
 
-    , qsadm.qsofa_no_rx as qsofa_no_rx
+    , qsadm.qsofa_no_rx as qsofa_norx
+    -- subcomponents for qSOFA with no treatments
+    , qsadm.SysBP_score_norx as qsofa_sysbp_score_norx
+    , qsadm.GCS_score_norx as qsofa_gcs_score_norx
+    , qsadm.RespRate_score_norx as qsofa_resprate_score_norx
+
     , firststay.rn as icustay_num
     , firststay.adult
     , case when vent.starttime is not null then 1 else 0 end as vent
