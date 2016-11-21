@@ -161,6 +161,7 @@ with ab as
   inner join ab
       on mv.itemid = ab.itemid
       and ab.antibiotic = 1
+  where lower(statusdescription) not like '%rewritten%'
 )
 , cv as
 (
