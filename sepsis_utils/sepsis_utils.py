@@ -245,9 +245,9 @@ def print_demographics(df, idx=None):
     ('vent', 'binary'),
     ('ethnicity', 'race'),
     ('elixhauser_hospital', 'median'),
+    ('qsofa', 'median'),
     ('sirs', 'median'),
     ('sofa', 'median'),
-    ('qsofa', 'median'),
     ('mlods', 'median'),
     ('lactate_max', 'continuous')))
 
