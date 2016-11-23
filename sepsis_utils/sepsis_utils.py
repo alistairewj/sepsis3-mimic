@@ -243,7 +243,7 @@ def print_demographics(df, idx=None):
     ('icu_los', 'median'),
     ('hosp_los', 'median'),
     ('vent', 'binary'),
-    ('race', 'race'),
+    ('ethnicity', 'race'),
     ('elixhauser_hospital', 'median'),
     ('sirs', 'median'),
     ('sofa', 'median'),
