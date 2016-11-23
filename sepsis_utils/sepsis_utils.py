@@ -236,20 +236,20 @@ def print_demographics(df, idx=None):
     all_vars = collections.OrderedDict((
     ('N', 'N'),
     ('age', 'median'),
-    ('gender', 'gender'), # handled specially
+    ('gender', 'gender'),
     ('bmi', 'continuous'),
-    ('hospital_expire_flag', 'binary'),
-    ('thirtyday_expire_flag', 'binary'),
-    ('icu_los', 'median'),
-    ('hosp_los', 'median'),
-    ('vent', 'binary'),
     ('ethnicity', 'race'),
     ('elixhauser_hospital', 'median'),
     ('qsofa', 'median'),
     ('sirs', 'median'),
     ('sofa', 'median'),
     ('mlods', 'median'),
-    ('lactate_max', 'continuous')))
+    ('lactate_max', 'continuous'),
+    ('vent', 'binary'),
+    ('icu_los', 'median'),
+    ('hosp_los', 'median'),
+    ('hospital_expire_flag', 'binary'),
+    ('thirtyday_expire_flag', 'binary')))
 
     if idx is None:
         # print demographics for entire dataset
