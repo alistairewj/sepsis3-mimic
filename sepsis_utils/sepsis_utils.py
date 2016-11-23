@@ -248,8 +248,8 @@ def print_demographics(df, idx=None):
     ('vent', 'binary'),
     ('icu_los', 'median'),
     ('hosp_los', 'median'),
-    ('hospital_expire_flag', 'binary'),
-    ('thirtyday_expire_flag', 'binary')))
+    ('thirtyday_expire_flag', 'binary'),
+    ('hospital_expire_flag', 'binary')))
 
     if idx is None:
         # print demographics for entire dataset
