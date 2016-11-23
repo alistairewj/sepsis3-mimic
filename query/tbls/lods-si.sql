@@ -43,6 +43,8 @@ with cpap as
     467, 469, 226732
   )
   and lower(value) similar to '%(cpap mask|bipap mask)%'
+  -- exclude rows marked as error
+  AND ce.error IS DISTINCT FROM 1
   group by ie.icustay_id
 )
 , pafi1 as

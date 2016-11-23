@@ -12,6 +12,8 @@ with stg_spo2 as
     646 -- SpO2
   , 220277 -- O2 saturation pulseoxymetry
   )
+  -- exclude rows marked as error
+  AND error IS DISTINCT FROM 1
   group by ICUSTAY_ID, CHARTTIME
 )
 , stg_fio2 as
@@ -46,6 +48,8 @@ with stg_spo2 as
   , 223835 -- Inspired O2 Fraction (FiO2)
   , 3422 -- FiO2 [measured]
   )
+  -- exclude rows marked as error
+  AND error IS DISTINCT FROM 1
   group by ICUSTAY_ID, CHARTTIME
 )
 , stg2 as

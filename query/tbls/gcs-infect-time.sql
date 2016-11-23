@@ -78,6 +78,8 @@ with base as
     -- GCS components, Metavision
     , 223900, 223901, 220739
   )
+  -- exclude rows marked as error
+  AND l.error IS DISTINCT FROM 1
   -- Only get data for the first 24 hours
   and l.charttime
   between ie.si_starttime
