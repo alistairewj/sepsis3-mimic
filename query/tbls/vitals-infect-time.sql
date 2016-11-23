@@ -107,6 +107,8 @@ FROM  (
 
 
   )
+  -- exclude rows marked as error
+  AND ce.error IS DISTINCT FROM 1
 ) pvt
 group by pvt.icustay_id
 order by pvt.icustay_id;

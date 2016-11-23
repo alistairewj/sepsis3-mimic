@@ -108,6 +108,8 @@ with bg as
       and ce.charttime
       between ie.intime - interval '6' hour
           and ie.intime + interval '6' hour
+      -- exclude rows marked as error
+      AND ce.error IS DISTINCT FROM 1
       and ce.itemid in
       (
       -- HEART RATE

@@ -59,6 +59,8 @@ with vitals as
       220210,--	Respiratory Rate
       224690 --	Respiratory Rate (Total)
       )
+      -- exclude rows marked as error
+      AND ce.error IS DISTINCT FROM 1
   ) pvt
   group by pvt.icustay_id
 )
@@ -110,6 +112,8 @@ with vitals as
     and l.charttime
     between ie.intime - interval '6' hour
         and ie.intime + interval '6' hour
+    -- exclude rows marked as error
+    AND l.error IS DISTINCT FROM 1
     -- Isolate the desired GCS variables
     and l.ITEMID in
     (

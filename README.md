@@ -126,7 +126,7 @@ Change to the directory with the queries and run the main SQL script through `ps
 ```
 cd query
 psql
-\i make-tables
+\i make-tables.sql
 ```
 
 This will start the generation of all the tables - which can take about an hour. You may see a lot of `NOTICE` warnings: don't worry about them. The query logic is "check if the table exists, and if it does, drop it". These warnings indicate that the table did not exist (and nor would you expect it to on a fresh install!).
