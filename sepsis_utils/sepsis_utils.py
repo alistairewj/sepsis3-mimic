@@ -8,7 +8,7 @@ import numpy as np
 import subprocess
 
 # we use ordered dictionaries to ensure consistent output order
-import collections
+from collections import OrderedDict
 
 import roc_utils as ru
 
@@ -82,31 +82,21 @@ def print_cm(y, yhat, header1='y', header2='yhat'):
     print('   \t{:2.2f}\t{:2.2f}\tAcc={:2.2f}'.format(100.0*TN/(TN+FP), 100.0*TP/(TP+FN), 100.0*(TP+TN)/N))
     print('   \tSpec\tSens')
 
-def get_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
+def get_op_stats(yhat_dict, y):
     # for a given set of predictions, prints a table of the performances
-    # yhat_all should be an 1xM list containing M numpy arrays of length N
-    # y_all is either an Nx1 numpy array (if evaluating against the same outcome)
-    # ... or it's an 1xM list containing M numpy arrays of length N
+    # yhat_all should be a dictionary containing numpy arrays of length N
+    # y is a length N numpy array
 
-    if 'numpy' in str(type(y_all)):
-        # targets input as a single array
-        # we create a 1xM list the same size as yhat_all
-        y_all = [y_all for i in range(len(yhat_all))]
+    yhat_names=yhat_dict.keys()
 
     stats_names = [ 'TN','FP','FN','TP','Sens','Spec','PPV','NPV','F1','NTP','NFP']
-    stats_all = np.zeros( [len(yhat_all), len(stats_names)] )
-    ci = np.zeros( [len(yhat_all), len(stats_names), 2] )
+    stats_all = OrderedDict()
 
-    TN = np.zeros(len(yhat_all))
-    FP = np.zeros(len(yhat_all))
-    FN = np.zeros(len(yhat_all))
-    TP = np.zeros(len(yhat_all))
+    for i, yhat_name in enumerate(yhat_dict):
+        stats = dict()
+        yhat = yhat_dict[yhat_name]
 
-    for i, yhat in enumerate(yhat_all):
-        if idx is not None:
-            cm = metrics.confusion_matrix(y_all[i][idx[i]], yhat[idx[i]])
-        else:
-            cm = metrics.confusion_matrix(y_all[i], yhat)
+        cm = metrics.confusion_matrix(y, yhat)
 
         # confusion matrix is output as int64 - we'd like to calculate percentages
         cm = cm.astype(float)
@@ -116,76 +106,81 @@ def get_op_stats(yhat_all, y_all, yhat_names=None, header=None, idx=None):
         FN = cm[1,0] # false negatives
         TP = cm[1,1] # true positives
 
-        stats_all[i,4] = 100.0*TP/(TP+FN) # Sensitivity
-        stats_all[i,5] = 100.0*TN/(TN+FP) # Specificity
-        stats_all[i,6] = 100.0*TP/(TP+FP) # PPV
-        stats_all[i,7] = 100.0*TN/(TN+FN) # NPV
+        stats['sens'] = 100.0*TP/(TP+FN) # Sensitivity
+        stats['spec'] = 100.0*TN/(TN+FP) # Specificity
+        stats['ppv'] = 100.0*TP/(TP+FP) # PPV
+        stats['npv'] = 100.0*TN/(TN+FN) # NPV
 
         # F1, the harmonic mean of PPV/Sensitivity
-        stats_all[i,8] = 2.0*(stats_all[i,6] * stats_all[i,4]) / (stats_all[i,6] + stats_all[i,4])
+        stats['f1'] = 2.0*(stats['sens'] * stats['ppv']) / (stats['ppv'] + stats['sens'])
 
         # NTP/100: 100 patients * % outcome * (ppv)
-        stats_all[i,9] = 100.0 * (TP+FP)/(TP+FP+TN+FN) * (stats_all[i,6]/100.0)
+        stats['ntp'] = 100.0 * (TP+FP)/(TP+FP+TN+FN) * (stats['ppv']/100.0)
         # NFP/100: 100 patients * % outcome * (1-ppv)
-        stats_all[i,10] = 100.0 * (TP+FP)/(TP+FP+TN+FN) * (1-stats_all[i,6]/100.0)
+        stats['nfp'] = 100.0 * (TP+FP)/(TP+FP+TN+FN) * (1-stats['ppv']/100.0)
 
         #stats_all[i,11] = (TP/FP)/(FN/TN) # diagnostic odds ratio
 
         # now push the stats to the final stats vector
-        stats_all[i,0] = TN
-        stats_all[i,1] = FP
-        stats_all[i,2] = FN
-        stats_all[i,3] = TP
+        stats['tn'] = TN
+        stats['fp'] = FP
+        stats['fn'] = FN
+        stats['tp'] = TP
 
+        # add the dictionary to the top of the ordered dict
+        stats_all.update({yhat_name: stats})
     return stats_all
 
 
-def print_op_stats(stats_all, yhat_names=None, header=None, idx=None):
+def print_op_stats(stats_all):
     stats_names = [ 'TN','FP','FN','TP','Sens','Spec','PPV','NPV','F1','NTP','NFP']
-    # calculate confidence intervals
-    P = stats_all.shape[0]
-    ci = np.zeros( [P, len(stats_names), 2] )
 
-    for i in range(P):
-        TN = stats_all[i,0]
-        FP = stats_all[i,1]
-        FN = stats_all[i,2]
-        TP = stats_all[i,3]
+    # calculate confidence intervals
+    ci = dict()
+
+    for i, yhat_name in enumerate(stats_all):
+        stats = stats_all[yhat_name]
+        TN = stats['tn']
+        FP = stats['fp']
+        FN = stats['fn']
+        TP = stats['tp']
 
         # add the CI
-        ci[i,4,:] = binomial_proportion_ci(TP, TP+FN, alpha = 0.05)
-        ci[i,5,:] = binomial_proportion_ci(TN, TN+FP, alpha = 0.05)
-        ci[i,6,:] = binomial_proportion_ci(TP, TP+FP, alpha = 0.05)
-        ci[i,7,:] = binomial_proportion_ci(TN, TN+FN, alpha = 0.05)
+        ci[yhat_name] = dict()
+        ci[yhat_name]['sens'] = binomial_proportion_ci(TP, TP+FN, alpha = 0.05)
+        ci[yhat_name]['spec'] = binomial_proportion_ci(TN, TN+FP, alpha = 0.05)
+        ci[yhat_name]['ppv'] = binomial_proportion_ci(TP, TP+FP, alpha = 0.05)
+        ci[yhat_name]['npv'] = binomial_proportion_ci(TN, TN+FN, alpha = 0.05)
 
     print('Metric')
-    if header is not None:
-        if type(header)==str:
-            print(''.format(header))
-        else:
-            for i, hdr_name in enumerate(header):
-                print('\t{:5s}'.format(hdr_name), end='')
-            print('') # newline
 
     # print the names of the predictions, if they were provided
     print('') # newline
     print('{:5s}'.format(''),end='') # spacing
-    if yhat_names is not None:
-        for i, yhat_name in enumerate(yhat_names):
-            print('\t{:20s}'.format(yhat_name), end='')
-        print('') # newline
+    for i, yhat_name in enumerate(stats_all):
+        print('\t{:8s}'.format(yhat_name), end='')
+    print('') # newline
 
     # print the stats calculated
-    for n, stats_name in enumerate(stats_names):
-        print('{:5s}'.format(stats_name), end='')
-        for i, yhat_name in enumerate(yhat_names):
-            if n < 4: # use integer format for the tp/fp
-                print('\t{:5.0f} {:10s}'.format(stats_all[i,n], ''), end='')
-            elif n < 8: # print sensitivity, specificity, etc with CI
-                print('\t{:2.2f} [{:2.2f}, {:2.2f}]'.format(stats_all[i,n],
-                ci[i,n,0],ci[i,n,1]),end='')
+    for n, stats_name_pretty in enumerate(stats_names):
+        # the dictionary uses all lower case
+        stats_name = stats_name_pretty.lower()
+
+        print('{:5s}'.format(stats_name_pretty), end='')
+        for i, yhat_name in enumerate(stats_all):
+            stats = stats_all[yhat_name]
+            if stats_name not in stats:
+                print('\t{:8s}'.format(''), end='')
+            elif stats_name in ['tp','fp','tn','fn']:
+                if i>0:
+                    # extra spacing
+                    print('',end='\t')
+                print('\t{:5.0f}'.format(stats[stats_name]), end='')
+            elif stats_name in ['sens','spec','ppv','npv']: # print sensitivity, specificity, etc with CI
+                print('\t{:2.0f} [{:2.0f}, {:2.0f}]'.format(stats[stats_name],
+                ci[yhat_name][stats_name][0]*100,ci[yhat_name][stats_name][1]*100),end='')
             else: # use decimal format for the rest
-                print('\t{:2.2f} {:12s}'.format(stats_all[i,n], ''), end='')
+                print('\t {:3.2f}{:3s}'.format(stats[stats_name],''), end='')
 
         print('') # newline
 
@@ -233,7 +228,7 @@ def print_stats_to_file(filename, yhat_names, stats_all):
 
 def print_demographics(df, idx=None):
     # create a dictionary which maps each variable to a data type
-    all_vars = collections.OrderedDict((
+    all_vars = OrderedDict((
     ('N', 'N'),
     ('age', 'median'),
     ('gender', 'gender'),
