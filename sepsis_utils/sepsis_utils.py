@@ -501,6 +501,7 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
         if err!=0:
             print(' '.join(rcmd))
             print('RScript returned error status {}.'.format(err))
+            return None
         else:
             # load in the predictions
             # base formula for the model
