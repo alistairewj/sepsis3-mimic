@@ -13,7 +13,7 @@ Before these notebooks can be run, there are a number of prerequisites:
 
 1. PostgreSQL version 9.4 or later
 2. The MIMIC-III database installed in PostgreSQL
-3. Python with the `numpy`, `pandas`, `matplotlib`, `psycoph2`, `statsmodels` and `sklearn` packages
+3. Python with the `numpy`, `pandas`, `matplotlib`, `psycopg2`, `statsmodels` and `sklearn` packages
 4. (Optional) In order to run the multifractional polynomial, both R and the `mfp` package for R are required.
 5. SQL scripts to generate materialized views must be executed
 
