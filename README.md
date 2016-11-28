@@ -63,7 +63,7 @@ pip install -r requirements.txt
 
 ### Install R and necessary package
 
-Unfortunately, there wasn't a package in Python which could build the fractional polynomial regression model. The package used available in R instead. This step is optional as most of the code will run without R - if these packages not installed then one of the cells will print `RScript returned error status 127.` a few times. The rest of the code will work however.
+Unfortunately, there wasn't a package in Python which could build the fractional polynomial regression model. The package used was available in R, so we use a subprocess in python to call R. This step is optional as most of the code will run without R - if these packages not installed then one of the cells will print `RScript returned error status 127.` a few times. The rest of the code will work however.
 
 R can be installed as follows:
 
