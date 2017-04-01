@@ -161,7 +161,7 @@ with ab as
   inner join ab
       on mv.itemid = ab.itemid
       and ab.antibiotic = 1
-  where statusdescription != 'Rewritten' 
+  where statusdescription != 'Rewritten'
 )
 , cv as
 (
@@ -195,6 +195,7 @@ with ab as
   select hadm_id
     , chartdate, charttime
     , spec_type_desc
+    , count(case when ab_name != '' then ab_name else null end) as num_abx
     , max(case when org_name is not null and org_name != '' then 1 else 0 end) as PositiveCulture
   from microbiologyevents
   group by hadm_id, chartdate, charttime, spec_type_desc
