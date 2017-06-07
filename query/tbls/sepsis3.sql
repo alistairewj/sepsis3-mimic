@@ -2,17 +2,45 @@ DROP TABLE IF EXISTS SEPSIS3 CASCADE;
 CREATE TABLE SEPSIS3 AS
 select co.icustay_id, co.hadm_id
     , co.intime, co.outtime
-    , coalesce(co.micro_charttime, co.micro_chartdate) as suspected_infection_time
-    , extract(EPOCH from co.intime - coalesce(co.micro_charttime, co.micro_chartdate))
-          / 60.0 / 60.0 / 24.0 as suspected_infection_time_days
+
+    , ie.dbsource
+
+    , co.suspected_infection_time
+    , co.suspected_infection_time_days
+    , co.specimen
     , co.positiveculture
 
-    , round((cast(adm.admittime as date) - cast(pat.dob as date)) / 365.242, 4) as age
-    , pat.gender
-    , adm.ethnicity
+    -- suspicion that *only* works for metavision data
+    , co.suspected_infection_time_mv
+    , co.suspected_infection_time_mv_days
+    , co.specimen_mv
+    , co.positiveculture_mv
+
+    -- suspicion POE
+    , co.suspected_infection_time_poe
+    , co.suspected_infection_time_poe_days
+    , co.specimen_poe
+    , co.positiveculture_poe
+
+    -- suspicion POE
+    , co.suspected_infection_time_d1poe
+    , co.suspected_infection_time_d1poe_days
+    , co.specimen_d1poe
+    , co.positiveculture_d1poe
+
+    -- suspicion using POE (IV)
+    , co.suspected_of_infection_piv
+    , co.suspected_infection_time_piv_days
+    , co.specimen_piv
+    , co.positiveculture_piv
+
+    , co.age
+    , co.gender
+    , case when co.gender = 'M' then 1 else 0 end as is_male
+    , co.ethnicity
 
     -- ethnicity flags
-    , case when adm.ethnicity in
+    , case when co.ethnicity in
     (
          'WHITE' --  40996
        , 'WHITE - RUSSIAN' --    164
@@ -20,7 +48,7 @@ select co.icustay_id, co.hadm_id
        , 'WHITE - BRAZILIAN' --     59
        , 'WHITE - EASTERN EUROPEAN' --     25
     ) then 1 else 0 end as race_white
-    , case when adm.ethnicity in
+    , case when co.ethnicity in
     (
           'BLACK/AFRICAN AMERICAN' --   5440
         , 'BLACK/CAPE VERDEAN' --    200
@@ -28,7 +56,7 @@ select co.icustay_id, co.hadm_id
         , 'BLACK/AFRICAN' --     44
         , 'CARIBBEAN ISLAND' --      9
     ) then 1 else 0 end as race_black
-    , case when adm.ethnicity in
+    , case when co.ethnicity in
     (
       'HISPANIC OR LATINO' --   1696
     , 'HISPANIC/LATINO - PUERTO RICAN' --    232
@@ -41,7 +69,29 @@ select co.icustay_id, co.hadm_id
     , 'HISPANIC/LATINO - COLOMBIAN' --      9
     , 'HISPANIC/LATINO - HONDURAN' --      4
   ) then 1 else 0 end as race_hispanic
-
+  , case when co.ethnicity not in
+  (
+      'WHITE' --  40996
+    , 'WHITE - RUSSIAN' --    164
+    , 'WHITE - OTHER EUROPEAN' --     81
+    , 'WHITE - BRAZILIAN' --     59
+    , 'WHITE - EASTERN EUROPEAN' --     25
+    , 'BLACK/AFRICAN AMERICAN' --   5440
+    , 'BLACK/CAPE VERDEAN' --    200
+    , 'BLACK/HAITIAN' --    101
+    , 'BLACK/AFRICAN' --     44
+    , 'CARIBBEAN ISLAND' --      9
+    , 'HISPANIC OR LATINO' --   1696
+    , 'HISPANIC/LATINO - PUERTO RICAN' --    232
+    , 'HISPANIC/LATINO - DOMINICAN' --     78
+    , 'HISPANIC/LATINO - GUATEMALAN' --     40
+    , 'HISPANIC/LATINO - CUBAN' --     24
+    , 'HISPANIC/LATINO - SALVADORAN' --     19
+    , 'HISPANIC/LATINO - CENTRAL AMERICAN (OTHER)' --     13
+    , 'HISPANIC/LATINO - MEXICAN' --     13
+    , 'HISPANIC/LATINO - COLOMBIAN' --      9
+    , 'HISPANIC/LATINO - HONDURAN' --      4
+  ) then 1 else 0 end as race_other
     -- other races
     -- , 'ASIAN' --   1509
     -- , 'ASIAN - CHINESE' --    277
@@ -79,14 +129,21 @@ select co.icustay_id, co.hadm_id
     -- service type on hospital admission
     , co.first_service
 
+    -- outcomes
     , adm.HOSPITAL_EXPIRE_FLAG
     , case when pat.dod <= adm.admittime + interval '30' day then 1 else 0 end
         as THIRTYDAY_EXPIRE_FLAG
     , ie.los as icu_los
     , extract(epoch from (adm.dischtime - adm.admittime))/60.0/60.0/24.0 as hosp_los
 
-    , a.angus
-      -- in-hospital mortality score
+    -- sepsis flags
+    , a.angus as sepsis_angus
+    , m.sepsis as sepsis_martin
+    , es.sepsis as sepsis_explicit
+    , es.septic_shock as septic_shock_explicit
+    , es.severe_sepsis as severe_sepsis_explicit
+
+    -- in-hospital mortality score (van Walraven et al.)
     ,   CONGESTIVE_HEART_FAILURE    *(4)    + CARDIAC_ARRHYTHMIAS   *(4) +
         VALVULAR_DISEASE            *(-3)   + PULMONARY_CIRCULATION *(0) +
         PERIPHERAL_VASCULAR         *(0)    + HYPERTENSION*(-1) + PARALYSIS*(0) +
@@ -102,32 +159,27 @@ select co.icustay_id, co.hadm_id
         PSYCHOSES                   *(-5)   + DEPRESSION*(-8)
     as elixhauser_hospital
 
-    , labs.lactate_max
+    , lac.lactate_min
+    , lac.lactate_max
+    , case when lac.lactate_max is null then 1 else 0 end as lactate_missing
+
     , case when vent.starttime is not null then 1 else 0 end as vent
 
     , so.sofa as sofa
     , lo.lods as lods
-    , ml.mlods as mlods
-
-    -- admission SIRS
-    , siadm.sirs as sirs
-    , si.sirs as sirs_24hours
-
-    -- admission qSOFA
-    -- this includes vent/vaso flags
-    , qsadm.qsofa as qsofa
-    , qsadm.qsofa_no_rx as qsofa_norx
-    , qs.qsofa as qsofa_24hours
+    , si.sirs as sirs
+    , qs.qsofa as qsofa
 
     -- subcomponents for qSOFA
-    , qsadm.SysBP_score as qsofa_sysbp_score
-    , qsadm.GCS_score as qsofa_gcs_score
-    , qsadm.RespRate_score as qsofa_resprate_score
+    , qs.SysBP_score as qsofa_sysbp_score
+    , qs.GCS_score as qsofa_gcs_score
+    , qs.RespRate_score as qsofa_resprate_score
 
     -- subcomponents for qSOFA with no treatments
-    , qsadm.SysBP_score_norx as qsofa_sysbp_score_norx
-    , qsadm.GCS_score_norx as qsofa_gcs_score_norx
-    , qsadm.RespRate_score_norx as qsofa_resprate_score_norx
+    , qs.qsofa_norx
+    , qs.SysBP_score_norx as qsofa_sysbp_score_norx
+    , qs.GCS_score_norx as qsofa_gcs_score_norx
+    , qs.RespRate_score_norx as qsofa_resprate_score_norx
 
 from sepsis3_cohort co
 inner join icustays ie
@@ -142,10 +194,14 @@ left join heightfirstday ht
   on ie.icustay_id = ht.icustay_id
 left join weightfirstday wt
   on ie.icustay_id = wt.icustay_id
-left join ANGUS_SEPSIS a
+left join angus_sepsis a
   on ie.hadm_id = a.hadm_id
-left join labsfirstday labs
-  on ie.icustay_id = labs.icustay_id
+left join martin_sepsis m
+  on ie.hadm_id = m.hadm_id
+left join explicit_sepsis es
+  on ie.hadm_id = es.hadm_id
+left join lactatefirstday lac
+  on ie.icustay_id = lac.icustay_id
 left join
   ( select icustay_id, min(starttime) as starttime
     from ventdurations
@@ -160,14 +216,14 @@ left join SIRS si
   on co.icustay_id = si.icustay_id
 left join LODS lo
   on co.icustay_id = lo.icustay_id
-left join MLODS ml
-  on co.icustay_id = ml.icustay_id
-left join QSOFA qs
+left join qsofa_rx qs
   on co.icustay_id = qs.icustay_id
-left join QSOFA_admit qsadm
-  on co.icustay_id = qsadm.icustay_id
-left join SIRS_admit siadm
-  on co.icustay_id = siadm.icustay_id
+-- left join MLODS ml
+--   on co.icustay_id = ml.icustay_id
+-- left join QSOFA_admit qsadm
+--   on co.icustay_id = qsadm.icustay_id
+-- left join SIRS_admit siadm
+--   on co.icustay_id = siadm.icustay_id
 -- exclusion criteria
 where co.excluded = 0
 order by co.icustay_id;
