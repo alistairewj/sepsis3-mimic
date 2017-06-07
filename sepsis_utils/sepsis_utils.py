@@ -253,20 +253,20 @@ def print_demographics(df, idx=None):
                 print('{:20s}\t{:4g}'.format(curr_var, df.shape[0]))
             elif curr_var in df.columns:
                 if all_vars[curr_var] == 'continuous': # report mean +- STD
-                    print('{:20s}\t{:2.2f} +- {:2.2f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
+                    print('{:20s}\t{:2.1f} +- {:2.1f}'.format(curr_var, df[curr_var].mean(), df[curr_var].std()))
                 elif all_vars[curr_var] == 'gender': # convert from M/F
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, np.sum(df[curr_var].values=='M'),
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var, np.sum(df[curr_var].values=='M'),
                     100.0*np.sum(df[curr_var].values=='M').astype(float) / df.shape[0]))
                 # binary, report percentage
                 elif all_vars[curr_var] == 'binary':
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var, df[curr_var].sum(),
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var, df[curr_var].sum(),
                     100.0*(df[curr_var].mean()).astype(float)))
                 # report median [25th percentile, 75th percentile]
                 elif all_vars[curr_var] == 'median':
-                    print('{:20s}\t{:2.2f} [{:2.2f}, {:2.2f}]'.format(curr_var, df[curr_var].median(),
+                    print('{:20s}\t{:2.1f} [{:2.1f}, {:2.1f}]'.format(curr_var, df[curr_var].median(),
                     np.percentile(df[curr_var].values,25,interpolation='midpoint'), np.percentile(df[curr_var].values,75,interpolation='midpoint')))
                 elif all_vars[curr_var] == 'measured':
-                    print('{:20s}\t{:2.2f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
+                    print('{:20s}\t{:2.1f}%'.format(curr_var, 100.0*np.mean(df[curr_var].isnull())))
                 elif all_vars[curr_var] == 'race':
                     # special case: print each race individually
                     # race_black, race_other
@@ -274,22 +274,24 @@ def print_demographics(df, idx=None):
 
                     # each component
                     curr_var_tmp = 'White'
-                    N_tmp = df.shape[0]-(df['race_black'].sum()+df['race_other'].sum())
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var_tmp, N_tmp,
-                    100.0*(N_tmp.astype(float))/df.shape[0]))
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var_tmp, df['race_white'].sum(),
+                    100.0*(df['race_white'].mean()).astype(float)))
                     curr_var_tmp = 'Black'
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var_tmp, df['race_black'].sum(),
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var_tmp, df['race_black'].sum(),
                     100.0*(df['race_black'].mean()).astype(float)))
-                    curr_var_tmp = 'Other'
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var_tmp, df['race_other'].sum(),
-                    100.0*(df['race_other'].mean()).astype(float)))
+                    curr_var_tmp = 'Hispanic'
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var_tmp, df['race_hispanic'].sum(),
+                    100.0*(df['race_black'].mean()).astype(float)))
+                    # curr_var_tmp = 'Other'
+                    # print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var_tmp, df['race_other'].sum(),
+                    # 100.0*(df['race_other'].mean()).astype(float)))
 
                 # additional lactate measurements output with lactate_max
                 if curr_var == 'lactate_max':
                     # also print measured
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var.replace('_max',' ') + 'measured',
-                    np.sum(df[curr_var].isnull()),100.0*np.mean(df[curr_var].isnull())))
-                    print('{:20s}\t{:4g} ({:2.2f}%)'.format(curr_var.replace('_max',' ') + '> 2',
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var.replace('_max',' ') + 'measured',
+                    np.sum(~df[curr_var].isnull()),100.0*np.mean(~df[curr_var].isnull())))
+                    print('{:20s}\t{:4g} ({:2.1f}%)'.format(curr_var.replace('_max',' ') + '> 2',
                     np.sum(df[curr_var] >= 2),100.0*np.mean(df[curr_var] >= 2)))
 
             else:
@@ -317,7 +319,7 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.3f}'.format(pvalue)
 
-                    print('{:20s}\t{:2.2f} +- {:2.2f}\t{:2.2f} +- {:2.2f}\t{:5s}'.format(curr_var,
+                    print('{:20s}\t{:2.1f} +- {:2.1f}\t{:2.1f} +- {:2.1f}\t{:5s}'.format(curr_var,
                     tbl[0,0], tbl[1,0],
                     tbl[0,1], tbl[1,1],
                     pvalue))
@@ -342,7 +344,7 @@ def print_demographics(df, idx=None):
                         pvalue = '{:0.3f}'.format(pvalue)
 
                     # binary, report percentage
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var,
+                    print('{:20s}\t{:4g} ({:2.1f}%)\t{:4g} ({:2.1f}%)\t{:5s}'.format(curr_var,
                     tbl[0,0], 100.0*tbl[0,0].astype(float) / (tbl[0,0]+tbl[1,0]),
                     tbl[0,1],
                     100.0*tbl[0,1].astype(float) / (tbl[0,1]+tbl[1,1]),
@@ -359,7 +361,7 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.3f}'.format(pvalue)
 
-                    print('{:20s}\t{:2.2f} [{:2.2f}, {:2.2f}]\t{:2.2f} [{:2.2f}, {:2.2f}]\t{:5s}'.format(curr_var,
+                    print('{:20s}\t{:2.1f} [{:2.1f}, {:2.1f}]\t{:2.1f} [{:2.1f}, {:2.1f}]\t{:5s}'.format(curr_var,
                     df[~idx][curr_var].median(), np.percentile(df[~idx][curr_var].values,25,interpolation='midpoint'), np.percentile(df[~idx][curr_var].values,75,interpolation='midpoint'),
                     df[idx][curr_var].median(), np.percentile(df[idx][curr_var].values,25,interpolation='midpoint'), np.percentile(df[idx][curr_var].values,75,interpolation='midpoint'),
                     pvalue))
@@ -378,11 +380,11 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.3f}'.format(pvalue)
 
-                    print('{:20s}\t{:2.2f}%\t{:2.2f}%'.format(curr_var,
-                    np.sum(df[~idx][curr_var].isnull()),
-                    100.0*np.mean(df[~idx][curr_var].isnull()),
-                    np.sum(df[idx][curr_var].isnull()),
-                    100.0*np.mean(df[idx][curr_var].isnull()),
+                    print('{:20s}\t{:2.1f}%\t{:2.1f}%'.format(curr_var,
+                    np.sum(~df[~idx][curr_var].isnull()),
+                    100.0*np.mean(~df[~idx][curr_var].isnull()),
+                    np.sum(~df[idx][curr_var].isnull()),
+                    100.0*np.mean(~df[idx][curr_var].isnull()),
                     pvalue))
 
                 elif all_vars[curr_var] == 'race':
@@ -391,20 +393,16 @@ def print_demographics(df, idx=None):
 
                     # create a contingency table with three rows
 
-                    # method 1) use crosstab
-                    #df['race'] = 'white'
-                    #df.loc[df['race_black']==1,'race'] = 'black'
-                    #df.loc[df['race_other']==1,'race'] = 'other'
-                    #tbl = pd.crosstab(df.race, df.angus, margins = True)
-                    # # Extract table without totals
-                    #tbl = tbl.ix[0:-1,0:-1]
+                    # use crosstab
+                    df['race'] = 'other'
+                    df.loc[df['race_black']==1,'race'] = 'black'
+                    df.loc[df['race_white']==1,'race'] = 'white'
+                    df.loc[df['race_hispanic']==1,'race'] = 'hispanic'
+                    tbl = pd.crosstab(df.race, idx, margins = True)
 
-                    # method 2) do it manually!
-                    tbl = np.array([ [np.sum( ~((df[~idx]['race_black'].values) | (df[~idx]['race_other'].values))),
-                    np.sum(~((df[idx]['race_black'].values) | (df[idx]['race_other'].values)))],
-                    [np.sum(df[~idx]['race_black'].values), np.sum(df[idx]['race_black'].values)],
-                    [np.sum(df[~idx]['race_other'].values), np.sum(df[idx]['race_other'].values)] ])
-
+                    curr_var_vec = tbl.index.values[0:-1]
+                    # Extract table without totals
+                    tbl = tbl.ix[0:-1,0:-1]
 
                     # get the p-value
                     chi2, pvalue, dof, ex = scipy.stats.chi2_contingency( tbl, correction=False )
@@ -417,13 +415,12 @@ def print_demographics(df, idx=None):
 
                     # first print out we are comparing races (with p-value)
                     print('{:20s}\t{:10s}\t{:10s}\t{:5s}'.format(curr_var,'','',pvalue))
+
                     # next print out individual race #s (no p-value)
-                    curr_var_vec = ['White','Black','Other']
-                    for r in range(3):
-                        print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format('  ' + curr_var_vec[r],
-                        tbl[r,0], 100.0*tbl[r,0].astype(float) / np.sum(tbl[:,0]),
-                        tbl[r,1],
-                        100.0*tbl[r,1].astype(float) / np.sum(tbl[:,1]),
+                    for r in curr_var_vec:
+                        print('{:20s}\t{:4g} ({:2.1f}%)\t{:4g} ({:2.1f}%)\t{:5s}'.format('  ' + r,
+                        tbl.loc[r,False], 100.0*tbl.loc[r,False].astype(float) / np.sum(tbl.loc[:,False]),
+                        tbl.loc[r, True], 100.0*tbl.loc[r, True].astype(float) / np.sum(tbl.loc[:, True]),
                         '')) # no individual p-value
 
                 # additional lactate measurements output with lactate_max
@@ -446,11 +443,11 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.3f}'.format(pvalue)
 
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + 'measured',
-                    np.sum(df[~idx][curr_var].isnull()),
-                    100.0*np.mean(df[~idx][curr_var].isnull()),
-                    np.sum(df[idx][curr_var].isnull()),
-                    100.0*np.mean(df[idx][curr_var].isnull()),
+                    print('{:20s}\t{:4g} ({:2.1f}%)\t{:4g} ({:2.1f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + 'measured',
+                    np.sum(~df[~idx][curr_var].isnull()),
+                    100.0*np.mean(~df[~idx][curr_var].isnull()),
+                    np.sum(~df[idx][curr_var].isnull()),
+                    100.0*np.mean(~df[idx][curr_var].isnull()),
                     pvalue))
 
 
@@ -468,7 +465,7 @@ def print_demographics(df, idx=None):
                     else:
                         pvalue = '{:0.3f}'.format(pvalue)
 
-                    print('{:20s}\t{:4g} ({:2.2f}%)\t{:4g} ({:2.2f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + '> 2',
+                    print('{:20s}\t{:4g} ({:2.1f}%)\t{:4g} ({:2.1f}%)\t{:5s}'.format(curr_var.replace('_max',' ') + '> 2',
                     np.sum( df[~idx][curr_var] >= 2 ),
                     100.0*np.mean(df[~idx][curr_var] >= 2),
                     np.sum( df[idx][curr_var] >= 2 ),
@@ -547,6 +544,29 @@ def calc_predictions(df, preds_header, target_header, model=None, print_summary=
         print('Unsure what {} means...'.format(model))
         return None
 
+
+# measure of internal consistency for dicotomous data
+# kuder richardson formula 20
+def kr20(X):
+    norm_factor = X.shape[1] / (X.shape[1]-1.0)
+
+    kr20 = np.sum ( np.mean( X, axis=0 ) * np.mean( 1-X, axis=0 ) )
+    kr20_var = np.mean( (np.sum(X, axis=1) - np.mean(np.sum(X,axis=1)))**2 )
+
+    return norm_factor * (1-(kr20/kr20_var))
+
+def kr20_bootstrap(X,B=1000):
+    # bootstrap cronbach - return value and confidence intervals (percentile method)
+    alpha = np.zeros(B,dtype=float)
+    N = X.shape[1]
+
+    for b in range(B):
+        idx = np.random.randint(0, high=N, size=N)
+        alpha[b] = cronbach_alpha(X[:,idx])
+
+    ci = np.percentile(alpha, [5,95])
+    alpha = cronbach_alpha(X)
+    return alpha, ci
 
 def cronbach_alpha(X):
     # given a set of with K components (K rows) of N observations (N columns)
@@ -660,6 +680,58 @@ def print_auc_table_to_file(preds, target, preds_header=None, filename=None):
     f.close()
 
 
+def cronbach_alpha_table(df, preds_header, with_ci=True):
+    # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
+    P = len(preds_header)
+
+    print('{:10s}'.format(''),end='\t')
+
+    for p in range(P):
+        print('{:20s}'.format(preds_header[p]),end='\t')
+
+    print('')
+
+    for p in range(P):
+        ppred = preds_header[p]
+        print('{:10s}'.format(ppred),end='\t')
+        for q in range(P):
+            qpred = preds_header[q]
+            if (ppred in df.columns) and (qpred in df.columns) and (p<q):
+                alpha, ci = cronbach_alpha_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),B=100)
+                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(alpha, ci[0], ci[1]), end='\t')
+            else:
+                # skip this for any other reason
+                print('{:20s}'.format(''),end='\t')
+
+
+        print('')
+
+def kr20_table(df, preds_header, with_ci=True):
+    # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
+    P = len(preds_header)
+
+    print('{:10s}'.format(''),end='\t')
+
+    for p in range(P):
+        print('{:20s}'.format(preds_header[p]),end='\t')
+
+    print('')
+
+    for p in range(P):
+        ppred = preds_header[p]
+        print('{:10s}'.format(ppred),end='\t')
+        for q in range(P):
+            qpred = preds_header[q]
+            if (ppred in df.columns) and (qpred in df.columns) and (p<q):
+                alpha, ci = kr20_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),B=100)
+                print('{:0.3f} [{:0.3f}, {:0.3f}]'.format(alpha, ci[0], ci[1]), end='\t')
+            else:
+                # skip this for any other reason
+                print('{:20s}'.format(''),end='\t')
+
+
+        print('')
+
 def binomial_proportion(N, p, x1, x2):
     p = float(p)
     q = p/(1-p)
@@ -733,192 +805,27 @@ def binomial_proportion_ci(numerator, denominator, alpha = 0.05):
             interval_high = v
     return (interval_low, interval_high)
 
-def get_physiologic_data(con):
-    query = 'SET search_path to ' + schema_name + ';' + \
-    """
-    with bg as
-    (
-    select
-        icustay_id
-        , min(PH) as ArterialPH_Min
-        , max(PH) as ArterialPH_Max
-        , min(PCO2) as PaCO2_Min
-        , max(PCO2) as PaCO2_Max
-        , min(PaO2FiO2) as PaO2FiO2_Min
-        , min(AaDO2) as AaDO2_Min
-    from bloodgasfirstdayarterial
-    where SPECIMEN_PRED = 'ART'
-    group by icustay_id
-    )
-    , vent as
-    (
-    select
-        ie.icustay_id
-        , max(case when vd.icustay_id is not null then 1 else 0 end)
-            as MechVent
-    from icustays ie
-    left join ventdurations vd
-        on ie.icustay_id = vd.icustay_id
-        and vd.starttime <= ie.intime + interval '1' day
-    group by ie.icustay_id
-    )
-    , vaso as
-    (
-    select
-        ie.icustay_id
-        , max(case when vd.icustay_id is not null then 1 else 0 end)
-            as Vasopressor
-    from icustays ie
-    left join vasopressordurations vd
-        on ie.icustay_id = vd.icustay_id
-        and vd.starttime <= ie.intime + interval '1' day
-    group by ie.icustay_id
+def create_grouped_hist(df, groups, idxA, strAdd=None, targetStr='hospital_expire_flag'):
+    x = np.zeros([2*len(groups),])
 
-    )
-    select
-        ie.icustay_id
-        , vit.HeartRate_Min
-        , vit.HeartRate_Max
-        , vit.SysBP_Min
-        , vit.SysBP_Max
-        , vit.DiasBP_Min
-        , vit.DiasBP_Max
-        , vit.MeanBP_Min
-        , vit.MeanBP_Max
-        , vit.RespRate_Min
-        , vit.RespRate_Max
-        , vit.TempC_Min
-        , vit.TempC_Max
-        , vit.SpO2_Min
-        , vit.SpO2_Max
+    # create an x-tick label during the loop
+    lbl=list()
+    i=0
+    for lc in groups:
+        # first group
+        lbl.append(lc)
+        idx = groups[lc] & ~idxA
+        if len(strAdd)>1:
+            lbl[i] += '\n' + strAdd[0]
+        x[i] = np.mean(df.loc[idx, targetStr])
+        i=i+1
 
+        # second group
+        lbl.append(lc)
+        idx = groups[lc] & idxA
+        if len(strAdd)>1:
+            lbl[i] += '\n' + strAdd[1]
+        x[i] = np.mean(df.loc[idx, targetStr])
+        i=i+1
 
-        -- coalesce lab/vital sign glucose
-        , case
-            when vit.Glucose_min < lab.Glucose_Min
-                then vit.Glucose_Min
-            when lab.Glucose_Min < vit.Glucose_Min
-                then lab.Glucose_Min
-            else coalesce(vit.Glucose_Min, lab.Glucose_Min)
-        end as Glucose_Min
-
-        , case
-            when vit.Glucose_Max > 2000 and lab.Glucose_Max > 2000
-                then null
-            when vit.Glucose_Max > 2000
-                then lab.Glucose_Max
-            when lab.Glucose_Max > 2000
-                then vit.Glucose_Max
-            when vit.Glucose_Max > lab.Glucose_Max
-                then vit.Glucose_Max
-            when lab.Glucose_Max > vit.Glucose_Max
-                then lab.Glucose_Max
-            else null
-        end as Glucose_Max
-
-        , gcs.MinGCS as GCS_Min
-
-        -- height in centimetres
-        , case
-            when ht.Height > 100
-             and ht.Height < 250
-                 then ht.Height
-            else null
-        end as Height
-
-        -- weight in kgs
-        , case
-            when wt.Weight > 30
-             and wt.Weight < 300
-                 then wt.Weight
-            else null
-        end as Height
-
-
-        , lab.ANIONGAP_min
-        , lab.ANIONGAP_max
-        , lab.ALBUMIN_min
-        , lab.ALBUMIN_max
-        , lab.BANDS_min
-        , lab.BANDS_max
-        , lab.BICARBONATE_min
-        , lab.BICARBONATE_max
-        , lab.BILIRUBIN_min
-        , lab.BILIRUBIN_max
-        , lab.CREATININE_min
-        , lab.CREATININE_max
-        , lab.CHLORIDE_min
-        , lab.CHLORIDE_max
-
-        , lab.HEMATOCRIT_min
-        , lab.HEMATOCRIT_max
-        , lab.HEMOGLOBIN_min
-        , lab.HEMOGLOBIN_max
-        , lab.LACTATE_min
-        , lab.LACTATE_max
-        , lab.PLATELET_min
-        , lab.PLATELET_max
-        , lab.POTASSIUM_min
-        , lab.POTASSIUM_max
-        , lab.INR_min
-        , lab.INR_max
-
-        --, lab.PTT_min
-        --, lab.PTT_max
-        --, lab.PT_min
-        --, lab.PT_max
-
-        , lab.SODIUM_min
-        , lab.SODIUM_max
-        , lab.BUN_min
-        , lab.BUN_max
-        , lab.WBC_min
-        , lab.WBC_max
-
-        , rrt.RRT
-
-        , case
-            when uo.UrineOutput > 20000
-                then null
-            else uo.UrineOutput
-        end as UrineOutput
-
-        , vent.MechVent
-        , vaso.Vasopressor
-
-        , bg.AADO2_min
-        , case
-            when bg.PaO2FiO2_min > 1000
-                then null
-            else bg.PaO2FiO2_min
-        end as PaO2FiO2_min
-        , bg.ArterialPH_min
-        , bg.ArterialPH_max
-        , bg.PaCO2_min
-        , bg.PaCO2_max
-
-    from icustays ie
-    left join vitalsfirstday vit
-        on ie.icustay_id = vit.icustay_id
-    left join gcsfirstday gcs
-        on ie.icustay_id = gcs.icustay_id
-    left join heightfirstday ht
-        on ie.icustay_id = ht.icustay_id
-    left join weightfirstday wt
-        on ie.icustay_id = wt.icustay_id
-    left join labsfirstday lab
-        on ie.icustay_id = lab.icustay_id
-    left join rrtfirstday rrt
-        on ie.icustay_id = rrt.icustay_id
-    left join uofirstday uo
-        on ie.icustay_id = uo.icustay_id
-    left join vent
-        on ie.icustay_id = vent.icustay_id
-    left join vaso
-        on ie.icustay_id = vaso.icustay_id
-    left join bg
-        on ie.icustay_id = bg.icustay_id
-    """
-
-    dd = pd.read_sql_query(query,con)
-    return dd
+    return x, lbl
