@@ -21,6 +21,7 @@ select co.icustay_id, co.hadm_id
     , co.suspected_infection_time_poe_days
     , co.specimen_poe
     , co.positiveculture_poe
+    , co.antibiotic_time_poe
 
     -- suspicion POE
     , co.suspected_infection_time_d1poe

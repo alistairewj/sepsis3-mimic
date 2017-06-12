@@ -52,6 +52,7 @@ select ie.icustay_id, ie.hadm_id
           / 60.0 / 60.0 / 24.0 as suspected_infection_time_poe_days
     , spoe.specimen as specimen_poe
     , spoe.positiveculture as positiveculture_poe
+    , spoe.antibiotic_time as antibiotic_time_poe
 
     , case when d1poe.suspected_infection_time is not null then 1 else 0 end
         as suspected_of_infection_d1poe
@@ -119,6 +120,7 @@ select
   , suspected_infection_time_poe_days
   , specimen_poe
   , positiveculture_poe
+  , antibiotic_time_poe
 
   -- suspicion using POE 1st day
   , suspected_of_infection_d1poe
