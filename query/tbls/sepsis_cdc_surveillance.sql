@@ -188,5 +188,5 @@ left join vent
   on ie.icustay_id = vent.icustay_id
 left join vaso
   on ie.icustay_id = vaso.icustay_id
-left join abx_micro_poe si
+left join suspinfect_poe si
   on ie.icustay_id = si.icustay_id
