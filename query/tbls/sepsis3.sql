@@ -5,35 +5,12 @@ select co.icustay_id, co.hadm_id
 
     , ie.dbsource
 
-    , co.suspected_infection_time
-    , co.suspected_infection_time_days
-    , co.specimen
-    , co.positiveculture
-
-    -- suspicion that *only* works for metavision data
-    , co.suspected_infection_time_mv
-    , co.suspected_infection_time_mv_days
-    , co.specimen_mv
-    , co.positiveculture_mv
-
     -- suspicion POE
     , co.suspected_infection_time_poe
     , co.suspected_infection_time_poe_days
     , co.specimen_poe
     , co.positiveculture_poe
     , co.antibiotic_time_poe
-
-    -- suspicion POE
-    , co.suspected_infection_time_d1poe
-    , co.suspected_infection_time_d1poe_days
-    , co.specimen_d1poe
-    , co.positiveculture_d1poe
-
-    -- suspicion using POE (IV)
-    , co.suspected_of_infection_piv
-    , co.suspected_infection_time_piv_days
-    , co.specimen_piv
-    , co.positiveculture_piv
 
     , co.age
     , co.gender
