@@ -5,6 +5,9 @@
 -- met specific organ dysfunction criteria
 
 -- Suspected infection: antibiotics + blood culture
+-- requires:
+--  abx_poe_list
+--  abx_micro_poe
 
 -- Organ dysfunction: modified from Rhee et al. by Seymour et al.
 -- Rhee C, Kadri S, Huang SS, et al. Objective Sepsis Surveillance Using Electronic Clinical Data. Infect Control Hosp Epidemiol. Nov 3 2015:1-9.
@@ -143,6 +146,35 @@ with labs_stg1 as
 )
 -- group it all
 select ie.icustay_id
+, case
+   WHEN si.suspected_infection_time is null then 0
+   WHEN si.suspected_infection_time
+    between ie.intime - interval '1' day and ie.intime + interval '1' day
+    AND
+    (
+      coalesce(labs.renal,0) = 1
+     OR coalesce(labs.hematologic,0) = 1
+     OR coalesce(labs.hepatic,0) = 1
+     OR coalesce(labs.coagulation,0) = 1
+     OR coalesce(vent.respiratory,0) = 1
+     OR coalesce(vaso.cardiovascular,0) = 1
+   )
+     then 1
+  else 0 end sepsis
+-- simple rule that requires fewer labs to be recorded
+, case
+   WHEN si.suspected_infection_time is null then 0
+   WHEN si.suspected_infection_time
+    between ie.intime - interval '1' day and ie.intime + interval '1' day
+    AND
+    (
+      coalesce(labs.renal,0) = 1
+     OR coalesce(vent.respiratory,0) = 1
+     OR coalesce(vaso.cardiovascular,0) = 1
+   )
+     then 1
+  else 0 end sepsis_simple
+, si.suspected_infection_time
 , coalesce(labs.renal,0) as renal
 , coalesce(labs.hematologic,0) as hematologic
 , coalesce(labs.hepatic,0) as hepatic
@@ -156,3 +188,5 @@ left join vent
   on ie.icustay_id = vent.icustay_id
 left join vaso
   on ie.icustay_id = vaso.icustay_id
+left join abx_micro_poe si
+  on ie.icustay_id = si.icustay_id
