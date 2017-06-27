@@ -729,29 +729,27 @@ def cronbach_alpha_table(df, preds_header, with_ci=True):
 def corrcoef_table(df, preds_header, with_ci=True):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
     P = len(preds_header)
-    print('{:10s}'.format(''),end='\t')
+    print('{:8s}'.format(''),end='\t')
 
     for p in range(P):
         if p==0:
             continue
-        print('{:10s}'.format(preds_header[p].replace('sepsis_','')),end='\t')
+        print('{:8s}'.format(preds_header[p].replace('sepsis_','')),end='\t')
     print('')
 
     for p in range(P):
         ppred = preds_header[p]
-        print('{:10s}'.format(ppred.replace('sepsis_','')),end='\t')
+        print('{:8s}'.format(ppred.replace('sepsis_','')),end='\t')
         for q in range(P):
             if q==0:
                 continue
             qpred = preds_header[q]
-            if (ppred in df.columns) and (qpred in df.columns) and (p>q):
+            if (ppred in df.columns) and (qpred in df.columns) and (p<q):
                 alpha, ci = corrcoef_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),B=100)
                 print('{:0.2f} [{:0.2f}-{:0.2f}]'.format(alpha, ci[0], ci[1]), end=' ')
             else:
                 # skip this for any other reason
                 print('{:10s}'.format(''),end='\t')
-
-
         print('')
 
 def kr20_table(df, preds_header, with_ci=True):
