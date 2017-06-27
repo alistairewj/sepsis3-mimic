@@ -1,3 +1,8 @@
+-- This table requires:
+--  abx_poe_list
+--  abx_micro_poe
+--  suspinfect_poe
+
 DROP TABLE IF EXISTS sepsis3_cohort CASCADE;
 CREATE TABLE sepsis3_cohort AS
 with serv as
@@ -21,30 +26,7 @@ select ie.icustay_id, ie.hadm_id
     , s.curr_service as first_service
     , adm.HAS_CHARTEVENTS_DATA
 
-    -- suspicion of infection
-    , case when si.suspected_infection_time is not null then 1 else 0 end
-        as suspected_of_infection
-    , si.suspected_infection_time
-    , extract(EPOCH from ie.intime - si.suspected_infection_time)
-          / 60.0 / 60.0 / 24.0 as suspected_infection_time_days
-    , si.specimen
-    , si.positiveculture
-
-    -- suspicion that *only* works for metavision data
-    , case when smv.suspected_infection_time is not null then 1 else 0 end
-        as suspected_of_infection_mv
-    , smv.suspected_infection_time as suspected_infection_time_mv
-    , extract(EPOCH from ie.intime - smv.suspected_infection_time)
-          / 60.0 / 60.0 / 24.0 as suspected_infection_time_mv_days
-    , smv.specimen as specimen_mv
-    , smv.positiveculture as positiveculture_mv
-
-    , extract(EPOCH from ie.intime - smv.si_starttime)
-          / 60.0 / 60.0 / 24.0 as si_starttime_days
-    , extract(EPOCH from ie.intime - smv.si_endtime)
-          / 60.0 / 60.0 / 24.0 as si_endtime_days
-
-    -- suspicion using POE
+    -- suspicion of infection using POE
     , case when spoe.suspected_infection_time is not null then 1 else 0 end
         as suspected_of_infection_poe
     , spoe.suspected_infection_time as suspected_infection_time_poe
@@ -54,23 +36,6 @@ select ie.icustay_id, ie.hadm_id
     , spoe.positiveculture as positiveculture_poe
     , spoe.antibiotic_time as antibiotic_time_poe
 
-    , case when d1poe.suspected_infection_time is not null then 1 else 0 end
-        as suspected_of_infection_d1poe
-    , d1poe.suspected_infection_time as suspected_infection_time_d1poe
-    , extract(EPOCH from ie.intime - d1poe.suspected_infection_time)
-          / 60.0 / 60.0 / 24.0 as suspected_infection_time_d1poe_days
-    , d1poe.specimen as specimen_d1poe
-    , d1poe.positiveculture as positiveculture_d1poe
-
-    -- suspicion using POE only with IV abx
-    , case when spiv.suspected_infection_time is not null then 1 else 0 end
-        as suspected_of_infection_piv
-    , spiv.suspected_infection_time as suspected_infection_time_piv
-    , extract(EPOCH from ie.intime - spiv.suspected_infection_time)
-          / 60.0 / 60.0 / 24.0 as suspected_infection_time_piv_days
-    , spiv.specimen as specimen_piv
-    , spiv.positiveculture as positiveculture_piv
-
 from icustays ie
 inner join admissions adm
     on ie.hadm_id = adm.hadm_id
@@ -79,16 +44,8 @@ inner join patients pat
 left join serv s
     on ie.hadm_id = s.hadm_id
     and s.rn = 1
-left join suspinfect si
-  on ie.icustay_id = si.icustay_id
-left join SUSPINFECT_MV smv
-  on ie.icustay_id = smv.icustay_id
 left join suspinfect_poe spoe
   on ie.icustay_id = spoe.icustay_id
-left join suspinfect_poe_day1 d1poe
-  on ie.icustay_id = d1poe.icustay_id
-left join suspinfect_poe_iv spiv
-  on ie.icustay_id = spiv.icustay_id
 )
 select
     t1.hadm_id, t1.icustay_id
@@ -101,19 +58,6 @@ select
   , first_service
   , dbsource
 
-  , suspected_of_infection
-  , suspected_infection_time
-  , suspected_infection_time_days
-  , specimen
-  , positiveculture
-
-  -- suspicion that *only* works for metavision data
-  , suspected_of_infection_mv
-  , suspected_infection_time_mv
-  , suspected_infection_time_mv_days
-  , specimen_mv
-  , positiveculture_mv
-
   -- suspicion using POE
   , suspected_of_infection_poe
   , suspected_infection_time_poe
@@ -121,20 +65,6 @@ select
   , specimen_poe
   , positiveculture_poe
   , antibiotic_time_poe
-
-  -- suspicion using POE 1st day
-  , suspected_of_infection_d1poe
-  , suspected_infection_time_d1poe
-  , suspected_infection_time_d1poe_days
-  , specimen_d1poe
-  , positiveculture_d1poe
-
-  -- suspicion using POE (IV)
-  , suspected_of_infection_piv
-  , suspected_infection_time_piv
-  , suspected_infection_time_piv_days
-  , specimen_piv
-  , positiveculture_piv
 
   -- exclusions
   , case when t1.rn = 1 then 0 else 1 end as exclusion_secondarystay
