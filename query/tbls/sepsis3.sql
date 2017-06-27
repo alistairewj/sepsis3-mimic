@@ -153,12 +153,6 @@ select co.icustay_id, co.hadm_id
     , qs.GCS_score as qsofa_gcs_score
     , qs.RespRate_score as qsofa_resprate_score
 
-    -- subcomponents for qSOFA with no treatments
-    , qs.qsofa_norx
-    , qs.SysBP_score_norx as qsofa_sysbp_score_norx
-    , qs.GCS_score_norx as qsofa_gcs_score_norx
-    , qs.RespRate_score_norx as qsofa_resprate_score_norx
-
 from sepsis3_cohort co
 inner join icustays ie
   on co.icustay_id = ie.icustay_id
@@ -194,7 +188,7 @@ left join SIRS si
   on co.icustay_id = si.icustay_id
 left join LODS lo
   on co.icustay_id = lo.icustay_id
-left join qsofa_rx qs
+left join qsofa qs
   on co.icustay_id = qs.icustay_id
 -- left join MLODS ml
 --   on co.icustay_id = ml.icustay_id
