@@ -12,6 +12,10 @@ select co.icustay_id, co.hadm_id
     , co.positiveculture_poe
     , co.antibiotic_time_poe
 
+    -- blood culture on admission
+    , bc.charttime as blood_culture_time
+    , bc.positiveculture as blood_culture_positive
+
     , co.age
     , co.gender
     , case when co.gender = 'M' then 1 else 0 end as is_male
@@ -174,6 +178,8 @@ left join martin_sepsis m
   on ie.hadm_id = m.hadm_id
 left join explicit_sepsis es
   on ie.hadm_id = es.hadm_id
+left join blood_culture_icu_admit bc
+  on ie.icustay_id = bc.icustay_id
 left join
   ( select icustay_id, min(starttime) as starttime
     from ventdurations
