@@ -124,6 +124,9 @@ select co.icustay_id, co.hadm_id
     , es.sepsis as sepsis_explicit
     , es.septic_shock as septic_shock_explicit
     , es.severe_sepsis as severe_sepsis_explicit
+    , nqf.sepsis as sepsis_nqf
+    , cdc.sepsis as sepsis_cdc
+    , cdc.sepsis_simple as sepsis_cdc_simple
 
     -- in-hospital mortality score (van Walraven et al.)
     ,   CONGESTIVE_HEART_FAILURE    *(4)    + CARDIAC_ARRHYTHMIAS   *(4) +
@@ -172,6 +175,10 @@ left join martin_sepsis m
   on ie.hadm_id = m.hadm_id
 left join explicit_sepsis es
   on ie.hadm_id = es.hadm_id
+left join sepsis_nqf_0500 nqf
+  on ie.icustay_id = nqf.icustay_id
+left join sepsis_cdc_surveillance cdc
+  on ie.icustay_id = cdc.icustay_id
 left join blood_culture_icu_admit bc
   on ie.icustay_id = bc.icustay_id
 left join
