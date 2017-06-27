@@ -137,10 +137,6 @@ select co.icustay_id, co.hadm_id
         PSYCHOSES                   *(-5)   + DEPRESSION*(-8)
     as elixhauser_hospital
 
-    , lac.lactate_min
-    , lac.lactate_max
-    , case when lac.lactate_max is null then 1 else 0 end as lactate_missing
-
     , case when vent.starttime is not null then 1 else 0 end as vent
 
     , so.sofa as sofa
@@ -178,8 +174,6 @@ left join martin_sepsis m
   on ie.hadm_id = m.hadm_id
 left join explicit_sepsis es
   on ie.hadm_id = es.hadm_id
-left join lactatefirstday lac
-  on ie.icustay_id = lac.icustay_id
 left join
   ( select icustay_id, min(starttime) as starttime
     from ventdurations
