@@ -1,6 +1,10 @@
 # sepsis3-mimic
 Evaluation of the Sepsis-3 guidelines in MIMIC-III
 
+[![DOI](https://zenodo.org/badge/61314230.svg)](https://zenodo.org/badge/latestdoi/61314230)
+
+You can acknowledge this repository by citing the above DOI.
+
 # Using this repository
 
 The main body of code is broken down into three files:
