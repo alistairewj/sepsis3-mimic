@@ -587,6 +587,25 @@ def cronbach_alpha_bootstrap(X,B=1000):
     alpha = cronbach_alpha(X)
     return alpha, ci
 
+def corrcoef_bootstrap_tetrachoric(df, B=100):
+    # write data to file and let R script bootstrap and get conf int
+    alpha = np.zeros(B)
+    fn_in = 'tetra-' + '-'.join(df.columns) + '.csv'
+    df.to_csv(fn_in,index=False)
+    rcmd = ["Rscript r-tetrachoric.R", fn_in, 'tetra-out.csv', str(B)]
+    err = subprocess.call(' '.join(rcmd), shell=True)
+    if err!=0:
+        print(' '.join(rcmd))
+        print('RScript returned error status {}.'.format(err))
+    else:
+        # load in the predictions
+        corrcoef_df = pd.read_csv('tetra-out.csv', sep=',', header=0)
+        alpha = corrcoef_df.values
+
+    ci = np.percentile(alpha, [5,95])
+    alpha = np.mean(alpha)
+    return alpha, ci
+
 def corrcoef_bootstrap(X,B=1000):
     # bootstrap correlation coefficient - return value and confidence intervals
     # (percentile method)
@@ -726,7 +745,7 @@ def cronbach_alpha_table(df, preds_header, with_ci=True):
 
         print('')
 
-def corrcoef_table(df, preds_header, with_ci=True):
+def corrcoef_table(df, preds_header, with_ci=True, corr_type=None):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
     P = len(preds_header)
     print('{:8s}'.format(''),end='\t')
@@ -745,7 +764,11 @@ def corrcoef_table(df, preds_header, with_ci=True):
                 continue
             qpred = preds_header[q]
             if (ppred in df.columns) and (qpred in df.columns) and (p<q):
-                alpha, ci = corrcoef_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),B=100)
+                if corr_type == 'tetrachoric':
+                    alpha, ci = corrcoef_bootstrap_tetrachoric(df[[ppred,qpred]],B=100)
+                else:
+                    alpha, ci = corrcoef_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),
+                    B=100)
                 print('{:0.2f} [{:0.2f}-{:0.2f}]'.format(alpha, ci[0], ci[1]), end=' ')
             else:
                 # skip this for any other reason
