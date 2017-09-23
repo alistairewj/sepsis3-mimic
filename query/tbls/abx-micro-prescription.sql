@@ -1,35 +1,31 @@
 -- only works for metavision as carevue does not accurately document antibiotics
 DROP TABLE IF EXISTS abx_micro_poe CASCADE;
 CREATE TABLE abx_micro_poe as
-with mv as
+with abx as
 (
-  select hadm_id
-  , mv.drug as antibiotic_name
-  , startdate as antibiotic_time
-  , enddate as antibiotic_endtime
-  from prescriptions mv
+  select pr.hadm_id
+  , pr.drug as antibiotic_name
+  , pr.startdate as antibiotic_time
+  , pr.enddate as antibiotic_endtime
+  from prescriptions pr
+  -- inner join to subselect to only antibiotic prescriptions
   inner join abx_poe_list ab
-      on mv.drug = ab.drug
+      on pr.drug = ab.drug
 )
 -- get cultures for each icustay
--- note this duplicates data across ICU stays for the same hospitalization
--- we later filter down to first ICU stay so not concerned about it
+-- note this duplicates prescriptions
+-- each ICU stay in the same hospitalization will get a copy of all prescriptions for that hospitalization
 , ab_tbl as
 (
   select
         ie.subject_id, ie.hadm_id, ie.icustay_id
       , ie.intime, ie.outtime
-      , mv.antibiotic_name
-      , mv.antibiotic_time
-      , mv.antibiotic_endtime
-      -- , ROW_NUMBER() over
-      -- (
-      --   partition by ie.icustay_id
-      --   order by mv.antibiotic_time, mv.antibiotic_endtime
-      -- ) as rn
+      , abx.antibiotic_name
+      , abx.antibiotic_time
+      , abx.antibiotic_endtime
   from icustays ie
-  left join mv
-      on ie.hadm_id = mv.hadm_id
+  left join abx
+      on ie.hadm_id = abx.hadm_id
 )
 , me as
 (
