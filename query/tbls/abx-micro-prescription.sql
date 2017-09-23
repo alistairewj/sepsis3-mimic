@@ -1,4 +1,4 @@
--- only works for metavision as carevue does not accurately document antibiotics
+-- defines suspicion of infection using prescriptions + microbiologyevents
 DROP TABLE IF EXISTS abx_micro_poe CASCADE;
 CREATE TABLE abx_micro_poe as
 with abx as
