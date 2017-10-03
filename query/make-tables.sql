@@ -14,6 +14,9 @@ BEGIN;
 \i tbls/abx-micro-prescription.sql
 \i tbls/suspicion-of-infection.sql
 
+-- blood cultures around ICU admission
+\i tbls/blood-culture-icu-admit.sql
+
 -- generate cohort
 \i tbls/cohort.sql
 
@@ -21,6 +24,7 @@ BEGIN;
 \i ../mimic-code/concepts/sepsis/angus.sql
 \i ../mimic-code/concepts/sepsis/martin.sql
 \i ../mimic-code/concepts/sepsis/explicit.sql
+
 
 -- -- Generate the views which the severity scores are based on (at time of infection)
 -- \i tbls/urine-output-infect-time.sql
@@ -68,6 +72,13 @@ BEGIN;
 -- \i tbls/qsofa-admission.sql
 -- \i tbls/blood-gas-admission.sql
 -- \i tbls/sirs-admission.sql
+
+-- ----------------------------- --
+-- ---------- STAGE 3 ---------- --
+-- ----------------------------- --
+-- Some sepsis criteria require the severity scores (e.g. SIRS)
+\i tbls/sepsis_cdc_surveillance.sql
+\i tbls/sepsis_nqf_0500.sql
 
 -- Generate the final table
 \i tbls/sepsis3.sql
