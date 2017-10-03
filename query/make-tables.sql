@@ -1,7 +1,9 @@
 -- As the script is generating many tables, it may take some time.
 
-\c mimic;
-set search_path to mimiciii;
+-- We assume the database and the search path are set correctly.
+-- You can set the search path as follows:
+--    SET SEARCH_PATH TO public,mimiciii;
+-- This will create tables on public and read tables from mimiciii
 
 BEGIN;
 -- ----------------------------- --
@@ -30,31 +32,30 @@ BEGIN;
 -- \i tbls/vaso-dur.sql
 
 -- Generate the views which the severity scores are based on (first 24 hours)
-\i ../mimic-code/etc/firstday/urine-output-first-day.sql
-\i ../mimic-code/etc/firstday/ventilation-first-day.sql
-\i ../mimic-code/etc/firstday/vitals-first-day.sql
-\i ../mimic-code/etc/firstday/gcs-first-day.sql
-\i ../mimic-code/etc/firstday/labs-first-day.sql
-\i ../mimic-code/etc/firstday/blood-gas-first-day.sql
-\i ../mimic-code/etc/firstday/blood-gas-first-day-arterial.sql
+\i ../mimic-code/concepts/firstday/urine-output-first-day.sql
+\i ../mimic-code/concepts/firstday/ventilation-first-day.sql
+\i ../mimic-code/concepts/firstday/vitals-first-day.sql
+\i ../mimic-code/concepts/firstday/gcs-first-day.sql
+\i ../mimic-code/concepts/firstday/labs-first-day.sql
+\i ../mimic-code/concepts/firstday/blood-gas-first-day.sql
+\i ../mimic-code/concepts/firstday/blood-gas-first-day-arterial.sql
 
-\i ../mimic-code/etc/ventilation-durations.sql
-\i ../mimic-code/etc/echo-data.sql
-\i ../mimic-code/etc/firstday/weight-first-day.sql
-\i ../mimic-code/etc/firstday/height-first-day.sql
-\i ../mimic-code/comorbidity/postgres/elixhauser-ahrq-v37-with-drg.sql
-\i ../mimic-code/sepsis/angus.sql
+\i ../mimic-code/concepts/durations/ventilation-durations.sql
+\i ../mimic-code/concepts/echo-data.sql
+\i ../mimic-code/concepts/firstday/weight-first-day.sql
+\i ../mimic-code/concepts/firstday/height-first-day.sql
+\i ../mimic-code/concepts/comorbidity/elixhauser-ahrq-v37-with-drg.sql
 
 -- ----------------------------- --
 -- ---------- STAGE 2 ---------- --
 -- ----------------------------- --
 
 -- Severity scores during the first 24 hours
-\i ../mimic-code/severityscores/lods.sql
-\i ../mimic-code/severityscores/mlods.sql
-\i ../mimic-code/severityscores/sirs.sql
-\i ../mimic-code/severityscores/qsofa.sql
-\i ../mimic-code/severityscores/sofa.sql
+\i ../mimic-code/concepts/severityscores/lods.sql
+\i ../mimic-code/concepts/severityscores/mlods.sql
+\i ../mimic-code/concepts/severityscores/sirs.sql
+\i ../mimic-code/concepts/severityscores/qsofa.sql
+\i ../mimic-code/concepts/severityscores/sofa.sql
 
 -- -- Severity scores at the time of suspected infection
 -- \i tbls/sofa-si.sql
