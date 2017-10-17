@@ -717,33 +717,27 @@ def print_auc_table_to_file(preds, target, preds_header=None, filename=None):
 
 
 def cronbach_alpha_table(df, preds_header, with_ci=True):
-    # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
+    # create a dataframe of Cronbach Alpha values
+    # if CI requested, confidence intervals are also returned
     P = len(preds_header)
 
-    print('{:10s}'.format(''),end='\t')
-
-    for p in range(P):
-        if p==0:
-            continue
-        print('{:10s}'.format(preds_header[p].replace('sepsis_','')),end='\t')
-    print('')
+    df_out = pd.DataFrame(columns=preds_header)
 
     for p in range(P):
         ppred = preds_header[p]
-        print('{:10s}'.format(ppred.replace('sepsis_','')),end='\t')
         for q in range(P):
             if q==0:
                 continue
             qpred = preds_header[q]
             if (ppred in df.columns) and (qpred in df.columns) and (p<q):
-                alpha, ci = cronbach_alpha_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),B=100)
-                print('{:0.2f} [{:0.2f}-{:0.2f}]'.format(alpha, ci[0], ci[1]), end=' ')
-            else:
-                # skip this for any other reason
-                print('{:10s}'.format(''),end='\t')
+                if with_ci:
+                    alpha, ci = cronbach_alpha_bootstrap(np.row_stack([df[ppred].values,df[qpred].values]),B=100)
+                    df_out.loc[ppred, qpred] = '{:0.2f} [{:0.2f}-{:0.2f}]'.format(alpha, ci[0], ci[1])
+                else:
+                    alpha = cronbach_alpha(np.row_stack([df[ppred].values,df[qpred].values]))
+                    df_out.loc[ppred, qpred] = alpha
 
-
-        print('')
+    return df_out
 
 def corrcoef_table(df, preds_header, with_ci=True, corr_type=None):
     # prints a table of AUROCs and p-values like what was presented in the sepsis 3 paper
