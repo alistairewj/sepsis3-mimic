@@ -10,6 +10,11 @@ import subprocess
 # we use ordered dictionaries to ensure consistent output order
 from collections import OrderedDict
 
+# modules needed for venn diagrams
+import matplotlib.pyplot as plt
+from matplotlib_venn import venn3
+from venn import venn4
+
 import roc_utils as ru
 
 from statsmodels.formula.api import logit
@@ -892,3 +897,72 @@ def create_grouped_hist(df, groups, idxA, strAdd=None, targetStr='hospital_expir
         i=i+1
 
     return x, lbl
+
+def create_venn_diagram(df, venn_labels, figsize=[10,9], percent_only=False):
+    """
+    df - dataframe with data
+    venn_labels - ordered dictionary
+       keys are the column names to be used in the venn diagram - columns should only have 0s/1s
+       values are the "pretty" label for the column
+    """
+    sets = list()
+    set_names = list()
+    for c in venn_labels:
+        idx = df[c]==1
+        sets.append(set(df.loc[idx,'icustay_id']))
+        set_names.append(venn_labels[c])
+
+
+    if len(venn_labels)>4:
+        print('Only supports up to a 4 set venn diagrams')
+        return
+
+    if len(venn_labels)==4:
+        if percent_only:
+            fill='percent_only'
+        else:
+            fill='percent'
+        venn4(sets, set_names,
+                   show_plot=False, fontdict={'fontsize': 15, 'fontweight': 'normal'},
+                   fill=fill, figsize=figsize)
+        leg = plt.legend('off')
+        leg.remove()
+        plt.show()
+    else:
+        if percent_only:
+            string_formatter = lambda x: '{:2.1f}%'.format(x*100.0/df.shape[0])
+        else:
+            string_formatter = lambda x: '{:,}\n{:2.1f}%'.format(x, x*100.0/df.shape[0])
+
+        plt.figure(figsize=figsize)
+        plt.rcParams.update({'font.size': 15})
+        venn3(sets, set_names, subset_label_formatter=string_formatter)
+        plt.show()
+
+    # excluded IDs
+    set_other = set(df['icustay_id'].values).difference(*sets)
+
+    # Print other numbers for above venn diagram
+    print('{} patients ({:2.1f}%) satisfied all criteria.'.format(len(set.intersection(*sets)),
+         len(set.intersection(*sets))*100.0 / df.shape[0]))
+    print('{} patients ({:2.1f}%) satisfied no criteria.'.format(
+            len(set_other),
+            len(set_other)*100.0 / df.shape[0]))
+
+    # pair-wise counts
+    for i, c1 in enumerate(venn_labels):
+        for j, c2 in enumerate(venn_labels):
+            if i<=j:
+                continue
+            else:
+                set_both = set.intersection(sets[i],sets[j])
+                print('{:2.1f}% ({}) - {} & {}'.format(
+                        len(set_both)*100.0 / df.shape[0], len(set_both),c1, c2))
+
+    """
+    for i, c1 in enumerate(venn_labels):
+        for j, c2 in enumerate(venn_labels):
+            set_both = set.difference(sets[i],sets[j])
+            print('{:01.2f}%\t({:5d}) - overlap of {} and {} over {}'.format(
+                    (len(sets[i]) - len(set_both))*100.0 / len(sets[i]), len(sets[i]) - len(set_both), c1, c2, c1))
+    """
