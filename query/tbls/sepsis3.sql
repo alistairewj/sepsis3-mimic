@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS SEPSIS3 CASCADE;
 CREATE TABLE SEPSIS3 AS
 select co.icustay_id, co.hadm_id
+    -- exclusion criteria
+    , co.excluded
     , co.intime, co.outtime
 
     , ie.dbsource
@@ -203,6 +205,4 @@ left join qsofa qs
 --   on co.icustay_id = qsadm.icustay_id
 -- left join SIRS_admit siadm
 --   on co.icustay_id = siadm.icustay_id
--- exclusion criteria
-where co.excluded = 0
 order by co.icustay_id;
