@@ -2,7 +2,7 @@
 
 -- We assume the database and the search path are set correctly.
 -- You can set the search path as follows:
-SET SEARCH_PATH TO public,mimiciii;
+-- SET SEARCH_PATH TO public,mimiciii;
 -- This will create tables on public and read tables from mimiciii
 
 BEGIN;
