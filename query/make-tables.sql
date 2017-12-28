@@ -2,7 +2,7 @@
 
 -- We assume the database and the search path are set correctly.
 -- You can set the search path as follows:
---    SET SEARCH_PATH TO public,mimiciii;
+-- SET SEARCH_PATH TO public,mimiciii;
 -- This will create tables on public and read tables from mimiciii
 
 BEGIN;
@@ -36,6 +36,9 @@ BEGIN;
 -- \i tbls/vaso-dur.sql
 
 -- Generate the views which the severity scores are based on (first 24 hours)
+\i ../mimic-code/concepts/durations/vasopressor-durations.sql
+\i ../mimic-code/concepts/durations/ventilation-durations.sql
+
 \i ../mimic-code/concepts/firstday/urine-output-first-day.sql
 \i ../mimic-code/concepts/firstday/ventilation-first-day.sql
 \i ../mimic-code/concepts/firstday/vitals-first-day.sql
@@ -44,7 +47,6 @@ BEGIN;
 \i ../mimic-code/concepts/firstday/blood-gas-first-day.sql
 \i ../mimic-code/concepts/firstday/blood-gas-first-day-arterial.sql
 
-\i ../mimic-code/concepts/durations/ventilation-durations.sql
 \i ../mimic-code/concepts/echo-data.sql
 \i ../mimic-code/concepts/firstday/weight-first-day.sql
 \i ../mimic-code/concepts/firstday/height-first-day.sql
