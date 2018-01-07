@@ -1,131 +1,66 @@
-# sepsis3-mimic
-Evaluation of the Sepsis-3 guidelines in MIMIC-III
+# Sepsis-3 in MIMIC-III [![DOI](https://zenodo.org/badge/61314230.svg)](https://zenodo.org/badge/latestdoi/61314230)
 
-[![DOI](https://zenodo.org/badge/61314230.svg)](https://zenodo.org/badge/latestdoi/61314230)
+This is the code repository associated with [A Comparative Analysis of Sepsis Identification Methods in an Electronic Database](https://www.ncbi.nlm.nih.gov/pubmed/29303796)
 
-You can acknowledge this repository by citing the above DOI.
+The publication assessed five methods of identifying sepsis in electronic health records, and found that all five had varying cohort sizes and severity of illness as measured by in-hospital mortality rate. The results are best summarized by the following figure:
 
-# Using this repository
+![Frequency of sepsis and mortality rate using various criteria](img/cohort-size-versus-mortality.png)
 
-The main body of code is broken down into three files:
+Above, we can see that, as we change the criteria used to define sepsis, the percentage of patients who satisfy the criteria decreases (blue bars) and the percent mortality of that cohort increases (red bars). For more detail please see the paper.
 
-* sepsis-3-get-data.ipynb - this exports the data from the database and writes it to a CSV file
-* sepsis-3-hospital-mortality.ipynb - using the CSV files, this analyzes the data using hospital mortality as the outcome of interest
-* sepsis-3-angus.ipynb - using the CSV files, this analyzes the data using sepsis as defined by Angus et al. as the outcome of interest
+If you find the code useful, we would appreciate acknowledging our work with a citation: either the code directly (using the DOI badge from Zenodo), the paper summarizing the work, or both!
 
-Before these notebooks can be run, there are a number of prerequisites:
+# Reproducing the results of the above study
 
-1. PostgreSQL version 9.4 or later
-2. The MIMIC-III database installed in PostgreSQL
-3. Python with the `numpy`, `pandas`, `matplotlib`, `psycopg2`, `statsmodels` and `sklearn` packages
-4. (Optional) In order to run the multifractional polynomial, both R and the `mfp` package for R are required.
-5. SQL scripts to generate materialized views must be executed
+Reproducing the study can be done as follows:
 
-To facilitate use of this repository, we'll go over brief installation steps. Detail is provided for the Ubuntu 16.04 operating system - if you can figure out how to accomplish each step in your own operating system, we would welcome a guide!
+1. Installing necessary Python dependencies
+2. Generate or acquire the CSV files which are used for analysis by...
+  * Running the `sepsis-3-get-data.ipynb` notebook from start to finish
+  * ... or downloading the CSV files from the MIMIC-III Derived Data Repository and analyzing those files
+3. Running the analysis in `sepsis-3-main.ipynb`
 
-## Install packages and database
+## 1. Clone the repository and install necessary Python dependencies
 
-Unless otherwise specified, commands in the code blocks that follow are run from the terminal.
-
-### Install PostgreSQL
-
-First, a working version of PostgreSQL is needed. Ubuntu usually comes with the necessary version of PostgreSQL, so we can simply check the version of PostgreSQL that is installed:
-
-```sh
-psql --version
-```
-
-This returned `psql (PostgreSQL) 9.5.4` for me. You'll need at least version 9.4 as that's when materialized views became available in Postgres. If it's not installed, you can install it in Ubuntu with:
-
-```sh
-sudo apt-get install postgresql
-```
-
-Just make sure it's at least version 9.4.
-
-### Install MIMIC-III
-
-MIMIC-III is an openly available database sourced from the Beth Israel Deaconess Medical Center in Boston, MA, USA. Access to MIMIC requires signing of a data use agreement - you can find details on how to acquire the data here: http://mimic.physionet.org/gettingstarted/dbsetup/
-
-After you have acquired the data files (a set of plaintext .csv files), follow the instructions to import MIMIC into a local Postgres database here (Mac/Unix): http://mimic.physionet.org/tutorials/install-mimic-locally-ubuntu/
-
-There are instructions for Windows users as well, found here: http://mimic.physionet.org/tutorials/install-mimic-locally-windows/
-
-### Install Python with various packages
-
-Most of the packages used in this repository are available via Ubuntu's software management system, and can be installed as follows:
-
-```
-sudo apt-get install python python-dev python-pip python-numpy python-pandas python-scipy python-matplotlib python-sklearn python-statsmodels
-```
-
-Alternatively, if you prefer to use Python's package manager (`pip`), and already have it installed, you can run the following from the root directory of this repository:
-
-```
-pip install -r requirements.txt
-```
-
-### Install R and necessary package
-
-Unfortunately, there wasn't a package in Python which could build the fractional polynomial regression model. The package used was available in R, so we use a subprocess in python to call R. This step is optional as most of the code will run without R - if these packages not installed then one of the cells will print `RScript returned error status 127.` a few times. The rest of the code will work however.
-
-R can be installed as follows:
-
-```
-sudo apt-get install r-base r-base-dev
-```
-
-Then, install the necessary `mfp` package by using one of two methods:
-
-(1) Running the following from the command line:
-
-
-```
-wget https://cran.r-project.org/src/contrib/mfp_1.5.2.tar.gz
-sudo R CMD INSTALL mfp_1.5.2.tar.gz
-```
-
-or (2) Running R and, in the R prompt, calling:
-
-```R
-install.packages("mfp")
-```
-
-## Check it's working
-
-You should have a working version of MIMIC on your local computer now. The following commands should launch `psql`, a command line application for querying the database, and the subsequent commands should return 5 rows of data.
-
-```
-psql
-\c mimic;
-set search_path to mimiciii;
-select * from icustays limit 5;
-```
-
-## Clone this repository
-
-You will need a local copy of the code in this repository. The easiest way to acquire this is to use `git` to clone the data locally. First install `git`:
+You will need a local copy of the code in this repository. The easiest way to acquire this is to use `git` to clone the data locally. If using Ubuntu, you can install `git` easily with:
 
 ```
 sudo apt-get install git
 ```
 
-Ensure to clone the repository with the `--recursive` flag, as it relies on a distinct repository (mimic-code):
+Next, clone the repository with the `--recursive` flag as it relies on a distinct repository (mimic-code):
 
 ```
 git clone https://github.com/alistairewj/sepsis3-mimic sepsis3-mimic --recursive
 ```
 
-If you already have the repository cloned on your local computer, but you didn't use the `--recursive` flag, you can add it back quite easily:
+If you already have the repository cloned on your local computer, but you didn't use the `--recursive` flag, you can clone the submodule easily:
 
 ```
 cd sepsis3-mimic
 git submodule update --init --recursive
 ```
 
-## Run SQL scripts to generate views
+(Optional, recommended): Create a virtual environment for this repository: `mkvirtualenv --python=python3 sepsis3-py3`
 
-Change to the directory with the queries and run the main SQL script through `psql`:
+Finbally, using a package manager for Python (`pip`), you can run the following from the root directory of this repository to install all necessary python packages:
+
+```
+pip install -r requirements.txt
+```
+
+## 2. Acquire CSVs from a database with MIMIC-III
+
+### (a) Regenerate the CSVs from a PostgreSQL database with MIMIC-III
+
+The `sepsis-3-get-data.ipynb` notebook runs through the process of exporting the data from the database and writing it to CSV files. This notebook requires:
+
+1. PostgreSQL version 9.4 or later
+2. The MIMIC-III database installed in PostgreSQL
+
+If you do not have the above, you can follow the [instructions on this page](https://mimic.physionet.org/gettingstarted/dbsetup/) to access and install MIMIC-III.
+
+The `sepsis-3-get-data.ipynb` will call `query/make-tables.sql` to generate the necessary tables. You can alternatively run this directly from psql:
 
 ```
 cd query
@@ -134,3 +69,16 @@ psql
 ```
 
 This will start the generation of all the tables - which can take about an hour. You may see a lot of `NOTICE` warnings: don't worry about them. The query logic is "check if the table exists, and if it does, drop it". These warnings indicate that the table did not exist (and nor would you expect it to on a fresh install!).
+
+
+### (b) Download the CSVs from the MIMIC-III Derived Data repository
+
+TODO: This section will be populated soon.
+
+## 3. Run analysis
+
+`sepsis-3-main.ipynb` - this analyzes the data and reports all results found in the paper
+
+## (Optional) Supplemental Material
+
+Results presented in the supplemental material can be regenerated using the `supplemental-material.ipynb` file.
