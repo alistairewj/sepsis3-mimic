@@ -20,6 +20,8 @@ Reproducing the study can be done as follows:
   * ... or downloading the CSV files from the MIMIC-III Derived Data Repository and analyzing those files
 3. Running the analysis in `sepsis-3-main.ipynb`
 
+The following instructions have been tested on Ubuntu 16.04, but should be relatively straightforward to adapt to other systems.
+
 ## 1. Clone the repository and install necessary Python dependencies
 
 You will need a local copy of the code in this repository. The easiest way to acquire this is to use `git` to clone the data locally. If using Ubuntu, you can install `git` easily with:
@@ -41,15 +43,19 @@ cd sepsis3-mimic
 git submodule update --init --recursive
 ```
 
-(Optional, recommended): Create a virtual environment for this repository: `mkvirtualenv --python=python3 sepsis3-py3`
+(Optional, recommended): Create a virtual environment for this repository. I like to use [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/#) as it makes managing virtual environments easier. After [installing virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/install.html), run: `mkvirtualenv --python=python3 sepsis3-py3`
 
-Finbally, using a package manager for Python (`pip`), you can run the following from the root directory of this repository to install all necessary python packages:
+If you are running jupyter notebook in a different environment (e.g. you have a system level install of jupyter currently running, but want to use this virtual environment), then you can add this virtual environment as a kernel specification. From outside your virtual environment, run: `python -m ipykernel install --user --name sepsis3-py3 --display-name "sepsis3-py3"`. You can read more [about this here](https://stackoverflow.com/questions/37891550/jupyter-notebook-running-kernel-in-different-env). After installing the kernel specification, you may need to reload any active notebooks in order to see the kernel as an option.
+
+Finally, using a package manager for Python (`pip`), you can run the following from the root directory of this repository to install all necessary python packages:
 
 ```
 pip install -r requirements.txt
 ```
 
 ## 2. Acquire CSVs from a database with MIMIC-III
+
+There are two options: (a) regenerate the CSVs from the original MIMIC-III database, or (b) download pre-generated CSVs from PhysioNetWorks. Both will require approval to access MIMIC-III - you can also [read more about getting access to MIMIC-III](https://mimic.physionet.org/gettingstarted/access/).
 
 ### (a) Regenerate the CSVs from a PostgreSQL database with MIMIC-III
 
@@ -60,25 +66,30 @@ The `sepsis-3-get-data.ipynb` notebook runs through the process of exporting the
 
 If you do not have the above, you can follow the [instructions on this page](https://mimic.physionet.org/gettingstarted/dbsetup/) to access and install MIMIC-III.
 
-The `sepsis-3-get-data.ipynb` will call `query/make-tables.sql` to generate the necessary tables. You can alternatively run this directly from psql:
+Once you have the database setup, you will need to generate the CSV files. The easiest way is to run through the `sepsis-3-get-data.ipynb` notebook: this will call the `query/make-tables.sql` script and generate the necessary tables on the database. Alternatively, you can run this script directly, and the notebook will recognize that the final sepsis3 table already exists. If running directly using psql, you can call:
 
-```
+```sh
 cd query
 psql
+set search_path to public,mimiciii;
 \i make-tables.sql
 ```
 
-This will start the generation of all the tables - which can take about an hour. You may see a lot of `NOTICE` warnings: don't worry about them. The query logic is "check if the table exists, and if it does, drop it". These warnings indicate that the table did not exist (and nor would you expect it to on a fresh install!).
-
+Either way, the generation of all the tables can take anywhere from 10 minutes to about an hour, depending on your system. You may see a lot of `NOTICE` warnings: don't worry about them. The query logic is "check if the table exists, and if it does, drop it". These warnings indicate that the table did not exist (and nor would you expect it to on a fresh install!).
 
 ### (b) Download the CSVs from the MIMIC-III Derived Data repository
 
-TODO: This section will be populated soon.
+The data files can be downloaded from the [MIMIC-III Derived Data Repository](https://physionet.org/works/MIMICIIIDerivedDataRepository/).
 
 ## 3. Run analysis
 
-`sepsis-3-main.ipynb` - this analyzes the data and reports all results found in the paper
+`sepsis-3-main.ipynb` - this analyzes the data and reports all results found in the paper. It assumes the data is available in the `data` subfolder of this directory - all notebooks do this, and you can change it if you like by modifying the `data_path` variable at the top of each script.
 
 ## (Optional) Supplemental Material
 
 Results presented in the supplemental material can be regenerated using the `supplemental-material.ipynb` file.
+
+## (Optional) Other notebooks
+
+There are a number of other notebooks: `venn-diagrams.ipynb` unsurprisingly generates many Venn diagrams, `criteria-over-time.ipynb` and the `appendix` subfolder contains a number of notebooks/R scripts which contain some interesting analyses but may not work out of the box.
+Pull requests welcome! :)
