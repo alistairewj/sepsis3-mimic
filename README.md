@@ -80,6 +80,8 @@ Either way, the generation of all the tables can take anywhere from 10 minutes t
 ### (b) Download the CSVs from the MIMIC-III Derived Data repository
 
 The data files can be downloaded from the [MIMIC-III Derived Data Repository](https://physionet.org/works/MIMICIIIDerivedDataRepository/).
+If you have a PhysioNetWorks account which has been approved for access to MIMIC-III, access the [sepsis3-mimic derived data repository here](https://physionet.org/works/MIMICIIIDerivedDataRepository/files/approved/sepsis3-mimic/), supplying your username and password when prompted.
+The data file is "sepsis3-data.zip". By default, the code expects the data to be extracted in the `data` subfolder of this repository.
 
 ## 3. Run analysis
 
