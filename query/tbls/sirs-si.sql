@@ -46,7 +46,7 @@ select ie.icustay_id
   , l.WBC_max
   , l.Bands_max
 
-from suspinfect ie
+from suspinfect_poe ie
 left join bg
  on ie.icustay_id = bg.icustay_id
 left join vitals_si v
@@ -102,7 +102,7 @@ select
   + coalesce(WBC_score,0)
     as SIRS
   , Temp_score, HeartRate_score, Resp_score, WBC_score
-from suspinfect si
+from suspinfect_poe si
 left join scorecalc s
   on si.icustay_id = s.icustay_id
 where si.suspected_infection_time is not null

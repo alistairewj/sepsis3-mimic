@@ -102,7 +102,7 @@ select  ie.subject_id
 
       , uo.urineoutput
 
-from suspinfect s
+from suspinfect_poe s
 inner join icustays ie
   on s.icustay_id = ie.icustay_id
 inner join admissions adm
@@ -219,7 +219,7 @@ select si.icustay_id
 , pulmonary
 , hematologic
 , hepatic
-from suspinfect si
+from suspinfect_poe si
 left join scorecomp s
   on si.icustay_id = s.icustay_id
 where si.suspected_infection_time is not null

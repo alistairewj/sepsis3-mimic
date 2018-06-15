@@ -13,7 +13,7 @@ select
           / (extract(EPOCH from (max(charttime) - min(charttime)))/60.0/60.0/24.0)
     else null end
     as UrineOutput -- daily urine output
-from suspinfect ie
+from suspinfect_poe ie
 -- Join to the outputevents table to get urine output
 left join outputevents oe
 -- join on all patient identifiers

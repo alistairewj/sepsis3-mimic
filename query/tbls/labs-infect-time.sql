@@ -115,8 +115,8 @@ from
     end as valuenum
 
   from
-  -- subselect to add HADM_ID to suspinfect table
-  ( select s.*, ie.hadm_id from suspinfect s
+  -- subselect to add HADM_ID to suspinfect_poe table
+  ( select s.*, ie.hadm_id from suspinfect_poe s
     inner join icustays ie
     on s.icustay_id = ie.icustay_id ) ie
   left join labevents le

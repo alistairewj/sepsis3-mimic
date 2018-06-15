@@ -41,7 +41,7 @@ FROM  (
       -- convert F to C
   , case when itemid in (223761,678) then (valuenum-32)/1.8 else valuenum end as valuenum
 
-  from suspinfect ie
+  from suspinfect_poe ie
   left join chartevents ce
     on ie.icustay_id = ce.icustay_id
     and ce.charttime

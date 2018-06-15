@@ -22,7 +22,7 @@ select s.icustay_id
   , v.SysBP_Min
   , v.RespRate_max
   , gcs.MinGCS
-from suspinfect s
+from suspinfect_poe s
 left join vitals_si v
   on s.icustay_id = v.icustay_id
 left join gcs_si gcs

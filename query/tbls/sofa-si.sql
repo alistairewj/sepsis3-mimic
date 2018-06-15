@@ -42,7 +42,7 @@ with vaso_cv as
     , max(case when itemid in (30043,30307) then rate end) as rate_dopamine
     , max(case when itemid in (30042,30306) then rate end) as rate_dobutamine
 
-  from suspinfect s
+  from suspinfect_poe s
   inner join icustays ie
     on s.icustay_id = ie.icustay_id
   inner join inputevents_cv cv
@@ -64,7 +64,7 @@ with vaso_cv as
     , max(case when itemid = 221289 then rate end) as rate_epinephrine
     , max(case when itemid = 221662 then rate end) as rate_dopamine
     , max(case when itemid = 221653 then rate end) as rate_dobutamine
-  from suspinfect s
+  from suspinfect_poe s
   inner join icustays ie
     on s.icustay_id = ie.icustay_id
   inner join inputevents_mv mv
@@ -121,7 +121,7 @@ select ie.icustay_id
   , uo.UrineOutput
 
   , gcs.MinGCS
-from suspinfect s
+from suspinfect_poe s
 inner join icustays ie
   on s.icustay_id = ie.icustay_id
 left join vaso_cv cv
@@ -225,7 +225,7 @@ select si.icustay_id
 , cardiovascular
 , cns
 , renal
-from suspinfect si
+from suspinfect_poe si
 left join scorecalc s
   on si.icustay_id = s.icustay_id
 where si.suspected_infection_time is not null

@@ -66,7 +66,7 @@ with base as
   from CHARTEVENTS l
 
   -- get intime for charttime subselection
-  inner join suspinfect ie
+  inner join suspinfect_poe ie
     on l.icustay_id = ie.icustay_id
 
   -- Isolate the desired GCS variables
@@ -141,7 +141,7 @@ select ie.ICUSTAY_ID
 , EndoTrachFlag as EndoTrachFlag
 
 -- subselect down to the cohort of eligible patients
-from suspinfect ie
+from suspinfect_poe ie
 left join gcs_final gs
   on ie.ICUSTAY_ID = gs.ICUSTAY_ID
   and gs.IsMinGCS = 1
