@@ -8,7 +8,33 @@ The publication assessed five methods of identifying sepsis in electronic health
 
 Above, we can see that, as we change the criteria used to define sepsis, the percentage of patients who satisfy the criteria decreases (blue bars) and the percent mortality of that cohort increases (red bars). For more detail please see the paper.
 
+## Acknowledgement
+
 If you find the code useful, we would appreciate acknowledging our work with a citation: either the code directly (using the DOI badge from Zenodo), the paper summarizing the work, or both!
+
+```
+@article{johnson2018comparative,
+  title={A Comparative Analysis of Sepsis Identification Methods in an Electronic Database},
+  author={Johnson, Alistair EW and Aboab, Jerome and Raffa, Jesse D and Pollard, Tom J and Deliberato, Rodrigo O and Celi, Leo A and Stone, David J},
+  journal={Critical care medicine},
+  volume={46},
+  number={4},
+  pages={494--499},
+  year={2018},
+  publisher={Wolters Kluwer}
+}
+
+@misc{alistair_johnson_2018_1256723,
+  author       = {Alistair Johnson and Tom Pollard},
+  title        = {sepsis3-mimic},
+  version      = {1.0.0},
+  publisher    = {Zenodo},
+  month        = may,
+  year         = 2018,
+  doi          = {10.5281/zenodo.1256723},
+  url          = {https://doi.org/10.5281/zenodo.1256723}
+}
+```
 
 # Reproducing the results of the above study
 
