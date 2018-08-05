@@ -1,0 +1,126 @@
+-- IV amphotericin
+-- first icu , first 7 day
+
+DROP MATERIALIZED VIEW IF EXISTS ampho_7d CASCADE;
+CREATE MATERIALIZED VIEW ampho_7d  AS
+
+with  iepre as 
+(
+SELECT 
+  icustays.subject_id, 
+  icustays.hadm_id, 
+  icustays.icustay_id, 
+  icustays.dbsource, 
+  icustays.first_careunit, 
+  icustays.last_careunit, 
+  icustays.first_wardid, 
+  icustays.last_wardid, 
+  icustays.intime, 
+  icustays.outtime, 
+  icustays.los
+,    ROW_NUMBER() over (PARTITION BY icustays.subject_id ORDER BY icustays.intime) as rn
+FROM icustays
+)
+
+,ie as 
+(
+select  
+ieb.subject_id, 
+  ieb.hadm_id, 
+  ieb.icustay_id, 
+  ieb.dbsource, 
+  ieb.first_careunit, 
+  ieb.last_careunit, 
+  ieb.first_wardid, 
+  ieb.last_wardid, 
+  ieb.intime, 
+  ieb.outtime, 
+  ieb.los
+from iepre ieb 
+where ieb.rn=1
+)
+
+-- using only inputevents tables to find anti-infectives based on sepsis3-mimic
+, mv as
+(
+  select ie.hadm_id
+  from ie 
+  inner join inputevents_mv mv
+       on ie.hadm_id= mv.hadm_id
+      and 
+mv.itemid in (
+-- based on , from d_items , where label ilike '%amphotericin%' or label ilike '%ampho%' or label ilike '%amphotec%' or label ilike '%ambisome%' or label ilike '%abelcet%'
+3302 --	Amphotericin	       chartevents
+,5157 --	Ambisome	chartevents
+,30070 --	Amphotericin B	inputevents_cv
+--,41431 --	ampho bladder wash	inputevents_cv
+,42609	-- AMPHO-B      	inputevents_cv
+--,30170	-- Ampho-B_GU	        inputevents_cv
+,42051	-- AMPHOTERCIN CC HR	inputevents_cv
+,44467	-- Amphotericin	       inputevents_cv
+,44844	-- ampho	       inputevents_cv
+,45499	-- amphotercin 25mg	inputevents_cv
+,42661	-- ampho b iv    	inputevents_cv
+,42927	--  AMPHO B	      inputevents_cv
+,225838	-- Ambisome	       inputevents_mv
+--,226403	-- GU Irrigant - Amphotericin B	inputevents_mv
+)
+  where mv.statusdescription != 'Rewritten'
+and mv.amount >0
+-- only IV
+and mv.ordercategorydescription in (
+'Bolus'
+,'Continuous Med'
+,'Continuous IV'
+,'Drug Push'
+--,'Non Iv Meds'
+)
+and mv.starttime between ie.intime and ie.intime + interval '7' day
+)
+
+
+, cv as
+(
+  select ie.hadm_id
+  from ie 
+  inner join inputevents_cv cv
+      on ie.hadm_id = cv.hadm_id   
+      and    
+cv.itemid in (
+3302 --	Amphotericin	       chartevents
+,5157 --	Ambisome	chartevents
+,30070 --	Amphotericin B	inputevents_cv
+--,41431 --	ampho bladder wash	inputevents_cv
+,42609	-- AMPHO-B      	inputevents_cv
+--,30170	-- Ampho-B_GU	        inputevents_cv
+,42051	-- AMPHOTERCIN CC HR	inputevents_cv
+,44467	-- Amphotericin	       inputevents_cv
+,44844	-- ampho	       inputevents_cv
+,45499	-- amphotercin 25mg	inputevents_cv
+,42661	-- ampho b iv    	inputevents_cv
+,42927	--  AMPHO B	      inputevents_cv
+,225838	-- Ambisome	       inputevents_mv
+--,226403	-- GU Irrigant - Amphotericin B	inputevents_mv
+)
+where cv.charttime between intime and intime + interval '7' day    
+and cv.amount >0
+-- only intravenous 
+and cv.originalroute in 
+('IV Piggyback'
+,'IV Drip'
+,'Intravenous'
+,'Drip'
+,'Intravenous Infusion'
+,'Intravenous Push'
+) 
+)
+
+select ie.icustay_id
+, max(case 
+ when mv.hadm_id is not null then 1
+ when cv.hadm_id is not null then 1
+  else 0 end) as anfo
+from ie
+  left join mv on ie.hadm_id = mv.hadm_id
+  left join cv on ie.hadm_id = cv.hadm_id
+group by ie.icustay_id;
