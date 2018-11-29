@@ -12,7 +12,7 @@ with abx as
       PARTITION BY icustay_id
       ORDER BY suspected_infection_time
     ) as rn
-  from abx_micro_poe
+  from `physionet-data.mimiciii_derived.abx_micro_poe`
 )
 select
   ie.icustay_id
@@ -20,7 +20,7 @@ select
   , antibiotic_time
   , suspected_infection_time
   , specimen, positiveculture
-from icustays ie
+from `physionet-data.mimiciii_clinical.icustays` ie
 left join abx
   on ie.icustay_id = abx.icustay_id
   and abx.rn = 1

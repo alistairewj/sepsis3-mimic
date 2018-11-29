@@ -62,13 +62,13 @@ with labs_stg1 as
     end as valuenum
   , min(valuenum) OVER (PARTITION BY ie.icustay_id, le.itemid) as valuenum_min
   , max(valuenum) OVER (PARTITION BY ie.icustay_id, le.itemid) as valuenum_max
-  , case when le.charttime >= ie.intime - interval '6' hour
-          and le.charttime <= ie.intime + interval '1' day
+  , case when le.charttime >= DATETIME_SUB(ie.intime, INTERVAL 6 HOUR)
+          and le.charttime <= DATETIME_ADD(ie.intime, INTERVAL 1 DAY)
         then 1 else 0 end as firstday
-  from icustays ie
-  inner join admissions adm
+  from `physionet-data.mimiciii_clinical.icustays` ie
+  inner join `physionet-data.mimiciii_clinical.admissions` adm
     on ie.hadm_id = adm.hadm_id
-  inner join labevents le
+  inner join `physionet-data.mimiciii_clinical.labevents` le
     on adm.hadm_id = le.hadm_id
     and le.charttime >= adm.admittime
     and le.charttime <= adm.dischtime
@@ -109,7 +109,7 @@ with labs_stg1 as
   from labs_stg1 ls
   left join
   (
-    select hadm_id from diagnoses_icd where icd9_code = '5856'
+    select hadm_id from `physionet-data.mimiciii_clinical.diagnoses_icd` where icd9_code = '5856'
   ) esrd
     on ls.hadm_id = esrd.hadm_id
   group by ls.icustay_id, ls.hadm_id
@@ -120,9 +120,9 @@ with labs_stg1 as
 , vd_sum as
 (
   select icustay_id
-    , sum(extract(epoch from starttime-endtime))/60.0/60.0 as total_duration
+    , sum(DATETIME_DIFF(endtime,starttime,HOUR)) as total_duration
     , max(endtime) as endtime
-  from ventdurations
+  from `physionet-data.mimiciii_derived.ventdurations`
   group by icustay_id
 )
 , vent as
@@ -130,26 +130,26 @@ with labs_stg1 as
   select vd.icustay_id
     , case  when vd.total_duration >= 24.0 then 1
             -- if vent settings occurred within 6 hours of death, assume vented when patient expired
-            when vd.endtime > adm.deathtime - interval '6' hour then 1
+            when vd.endtime > DATETIME_SUB(adm.deathtime, INTERVAL 6 HOUR) then 1
           else 0 end as respiratory
   from vd_sum vd
-  inner join icustays ie
+  inner join `physionet-data.mimiciii_clinical.icustays` ie
     on vd.icustay_id = ie.icustay_id
-  inner join admissions adm
+  inner join `physionet-data.mimiciii_clinical.admissions` adm
     on ie.hadm_id = adm.hadm_id
 )
 -- b.	Vasopressor use (present/absent) during hospital stay
 , vaso as
 (
   select distinct icustay_id, 1 as cardiovascular
-  from vasopressordurations
+  from `physionet-data.mimiciii_derived.vasopressordurations`
 )
 -- group it all
 select ie.icustay_id
 , case
    WHEN si.suspected_infection_time is null then 0
    WHEN si.suspected_infection_time
-    between ie.intime - interval '1' day and ie.intime + interval '1' day
+    between DATETIME_SUB(ie.intime, INTERVAL 1 DAY) and DATETIME_ADD(ie.intime, INTERVAL 1 DAY)
     AND
     (
       coalesce(labs.renal,0) = 1
@@ -165,7 +165,7 @@ select ie.icustay_id
 , case
    WHEN si.suspected_infection_time is null then 0
    WHEN si.suspected_infection_time
-    between ie.intime - interval '1' day and ie.intime + interval '1' day
+    between DATETIME_SUB(ie.intime, INTERVAL 1 DAY) and DATETIME_ADD(ie.intime, INTERVAL 1 DAY)
     AND
     (
       coalesce(labs.renal,0) = 1
@@ -181,12 +181,12 @@ select ie.icustay_id
 , coalesce(labs.coagulation,0) as coagulation
 , coalesce(vent.respiratory,0) as respiratory
 , coalesce(vaso.cardiovascular,0) as cardiovascular
-from icustays ie
+from `physionet-data.mimiciii_clinical.icustays` ie
 left join labs_stg2 labs
   on ie.icustay_id = labs.icustay_id
 left join vent
   on ie.icustay_id = vent.icustay_id
 left join vaso
   on ie.icustay_id = vaso.icustay_id
-left join suspinfect_poe si
+left join `physionet-data.mimiciii_derived.suspinfect_poe` si
   on ie.icustay_id = si.icustay_id

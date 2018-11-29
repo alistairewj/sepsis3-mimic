@@ -7,9 +7,9 @@ with abx as
   , pr.drug as antibiotic_name
   , pr.startdate as antibiotic_time
   , pr.enddate as antibiotic_endtime
-  from prescriptions pr
+  from `physionet-data.mimiciii_clinical.prescriptions` pr
   -- inner join to subselect to only antibiotic prescriptions
-  inner join abx_poe_list ab
+  inner join `physionet-data.mimiciii_clinical.abx_poe_list` ab
       on pr.drug = ab.drug
 )
 -- get cultures for each icustay
@@ -23,7 +23,7 @@ with abx as
       , abx.antibiotic_name
       , abx.antibiotic_time
       , abx.antibiotic_endtime
-  from icustays ie
+  from `physionet-data.mimiciii_clinical.icustays` ie
   left join abx
       on ie.hadm_id = abx.hadm_id
 )
@@ -33,7 +33,7 @@ with abx as
     , chartdate, charttime
     , spec_type_desc
     , max(case when org_name is not null and org_name != '' then 1 else 0 end) as PositiveCulture
-  from microbiologyevents
+  from `physionet-data.mimiciii_clinical.microbiologyevents`
   group by hadm_id, chartdate, charttime, spec_type_desc
 )
 , ab_fnl as
@@ -59,14 +59,14 @@ with abx as
       -- if charttime is available, use it
       (
           ab_tbl.antibiotic_time > me72.charttime
-      and ab_tbl.antibiotic_time <= me72.charttime + interval '72' hour
+      and ab_tbl.antibiotic_time <= DATETIME_ADD(me72.charttime, interval 72 HOUR)
       )
       OR
       (
       -- if charttime is not available, use chartdate
           me72.charttime is null
       and ab_tbl.antibiotic_time > me72.chartdate
-      and ab_tbl.antibiotic_time < me72.chartdate + interval '96' hour -- could equally do this with a date_trunc, but that's less portable
+      and ab_tbl.antibiotic_time < DATETIME_ADD(me72.chartdate, interval 96 HOUR) -- could equally do this with a date_trunc, but that's less portable
       )
     )
   -- blood culture in subsequent 24 hours
@@ -78,7 +78,7 @@ with abx as
     (
       -- if charttime is available, use it
       (
-          ab_tbl.antibiotic_time > me24.charttime - interval '24' hour
+          ab_tbl.antibiotic_time > DATETIME_ADD(me24.charttime, interval 24 HOUR)
       and ab_tbl.antibiotic_time <= me24.charttime
       )
       OR
@@ -86,7 +86,7 @@ with abx as
       -- if charttime is not available, use chartdate
           me24.charttime is null
       and ab_tbl.antibiotic_time > me24.chartdate
-      and ab_tbl.antibiotic_time <= me24.chartdate + interval '24' hour
+      and ab_tbl.antibiotic_time <= DATETIME_ADD(me24.chartdate, interval 24 HOUR)
       )
     )
 )

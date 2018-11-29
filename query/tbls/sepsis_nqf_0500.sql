@@ -23,7 +23,7 @@ CREATE TABLE sepsis_nqf_0500 as
 with dx as
 (
   select distinct hadm_id
-  from diagnoses_icd
+  from `physionet-data.mimiciii_clinical.diagnoses_icd`
   where icd9_code in
   (
     '0031' -- SALMONELLA SEPTICEMIA
@@ -53,7 +53,7 @@ with dx as
 (
   select icustay_id, sirs
   , case when sirs >= 2 then 1 else 0 end as sirs_positive
-  from sirs
+  from `physionet-data.mimiciii_derived.sirs`
 )
 -- organ failure
 , vitals as
@@ -61,7 +61,7 @@ with dx as
   select icustay_id
     , sysbp_min
     , case when sysbp_min < 90 then 1 else 0 end as cardiovascular
-  from vitalsfirstday
+  from `physionet-data.mimiciii_derived.vitalsfirstday`
 )
 , labs as
 (
@@ -76,7 +76,7 @@ with dx as
   , case when platelet_min < 100 then 1 else 0 end as hematologic
   , case when inr_max > 1.5 then 1 else 0 end as coagulation
   , case when lactate_max > 2.0 then 1 else 0 end as metabolism
-  from labsfirstday
+  from `physionet-data.mimiciii_derived.labsfirstday`
 )
 select
   ie.icustay_id
@@ -113,7 +113,7 @@ select
   , labs.hematologic
   , labs.coagulation
   , labs.metabolism
-from icustays ie
+from `physionet-data.mimiciii_clinical.icustays` ie
 left join dx
   on ie.hadm_id = dx.hadm_id
 left join sirs
