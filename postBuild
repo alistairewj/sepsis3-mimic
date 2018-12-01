@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# download the demo to a data subfolder
+wget -P data https://physionet.org/physiobank/database/mimic3demo/mimiciii_demo-postgres_9_5.backup
+
+# create a psql instance and create demo in this instance
+cd data
+createdb mimic
+pg_restore -d mimic data/mimiciii_demo-postgres_9_5.backup
