@@ -101,11 +101,11 @@ select
 
   -- time of suspected infection: either the culture time (if before antibiotic), or the antibiotic time
   , case
-      when coalesce(last72_charttime,next24_charttime) is null
+      when coalesce(last72_charttime,antibiotic_time) is null
         then 0
       else 1 end as suspected_infection
 
-  , coalesce(last72_charttime,next24_charttime) as suspected_infection_time
+  , coalesce(last72_charttime,antibiotic_time) as suspected_infection_time
 
   -- the specimen that was cultured
   , case
