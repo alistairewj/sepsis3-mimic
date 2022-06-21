@@ -8,7 +8,7 @@ jupyter-client==5.2.1
 jupyter-core==4.4.0
 matplotlib==2.1.1
 matplotlib-venn==0.11.5
-numpy==1.14.0
+numpy==1.22.0
 pandas==0.22.0
 parso==0.1.1
 patsy==0.4.1
